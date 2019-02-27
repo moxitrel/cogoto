@@ -1,3 +1,14 @@
+/*
+
+* API
+- co_begin ()   :: mark coroutine begin. List with line numbers of co_yield() and co_return().
+- co_end   ()   :: mark coroutine end.
+- co_yield ()   :: yield from coroutine.
+- co_return()   :: return with ending coroutine.
+
+- .state() -> int   :: get the current running state.
+
+*/
 #ifndef COGO_GEN_H
 #define COGO_GEN_H
 
@@ -16,17 +27,12 @@ protected:
     int _pc = 0;
 public:
     // get the current running state
-    int state() const
+    int state() const noexcept
     {
         return _pc;
     }
 };
 
-//
-// NOTE: co_begin(), co_end(), co_yield(), co_return() are not expressions. They are statements.
-//
-
-// mark coroutine begin.
 // gen_t::co_begin();
 #define co_begin(...)                                   \
     switch (gen_t::_pc) {                               \
@@ -38,32 +44,27 @@ public:
     case  0:                    /* coroutine begin  */  \
 
 
-// yield from the coroutine
 // gen_t::co_yield();
 #define co_yield(...)                                                                           \
 do {                                                                                            \
-        __VA_ARGS__;            /* run before return, intent for handle return value */         \
         gen_t::_pc = __LINE__;  /* 1. save the restore point, at label case __LINE__ */         \
         goto CO_END;            /* 2. return */                                                 \
     case __LINE__:;             /* 3. put a case after each return as restore point */          \
 } while (0)
 
 
-// end coroutine and return.
 // gen_t::co_return();
-#define co_return(...)                                                                          \
-do {                                                                                            \
-        __VA_ARGS__;            /* run before return, intent for handle return value */         \
-        goto CO_RETURN;         /* return */                                                    \
+#define co_return(...)                                  \
+do {                                                    \
+        goto CO_RETURN;     /* return */                \
 } while (0)
 
 
-// mark coroutine end.
-// gen_t::co_end()
-#define co_end()                                                \
-    CO_RETURN:                                                  \
-        gen_t::_pc = -1;   /* finish coroutine successfully */  \
-    CO_END:;                                                    \
+// gen_t::co_end();
+#define co_end()                                        \
+    CO_RETURN:                                          \
+        gen_t::_pc = -1;   /* finish successfully */    \
+    CO_END:;                                            \
     }
 
 #endif // COGO_GEN_H

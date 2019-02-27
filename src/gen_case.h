@@ -91,24 +91,22 @@ typedef struct {
 // co_yield(gen_t *);
 #define co_yield(GEN, ...)                                                                  \
 do {                                                                                        \
-        __VA_ARGS__;                /* run before return, intent for handle return value */ \
         GEN_PC(GEN) = __LINE__;     /* 1. save the restore point, at case __LINE__: */      \
         goto CO_END;                /* 2. return */                                         \
     case __LINE__:;                 /* 3. put case after each *return* as restore point */  \
 } while (0)
 
 // co_return();
-#define co_return(...)                                                                  \
-do {                                                                                    \
-        __VA_ARGS__;            /* run before return, intent for handle return value */ \
-        goto CO_RETURN;         /* end coroutine */                                     \
+#define co_return(...)                                  \
+do {                                                    \
+        goto CO_RETURN;     /* end coroutine */         \
 } while (0)
 
 // co_end(gen_t *);
-#define co_end(GEN)                         \
-    CO_RETURN:                              \
-        GEN_PC(GEN) = -1;    /* finish */   \
-    CO_END:;                                \
+#define co_end(GEN)                                     \
+    CO_RETURN:                                          \
+        GEN_PC(GEN) = -1;   /* finish successfully*/    \
+    CO_END:;                                            \
     }
 
 #endif // COGO_GEN_H

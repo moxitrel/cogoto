@@ -10,7 +10,7 @@
 - co_yield (gen_t *)      :: yield from coroutine.
 - co_return(gen_t *)      :: return with ending coroutine.
 
-- int co_state(gen_t *)   :: get the current running state.
+- co_state(gen_t *) -> int  :: get the current running state.
 
 * Usage
 
@@ -176,8 +176,7 @@ do {                                                    \
 // co_yield(gen_t *): yield from the coroutine.
 #define co_yield(GEN, ...)                                                              \
 do {                                                                                    \
-    __VA_ARGS__;                /* run before return, intent for handle return value */ \
-    GEN_PC(GEN) = __LINE__;     /* 1. save the restore point, at label YIELD_N */       \
+    GEN_PC(GEN) = __LINE__;     /* 1. save the restore point, at label CO_YIELD_N */    \
     goto CO_END;                /* 2. return */                                         \
 CO_LABEL(__LINE__):;            /* 3. put label after each *return* as restore point */ \
 } while (0)
@@ -185,7 +184,6 @@ CO_LABEL(__LINE__):;            /* 3. put label after each *return* as restore p
 // co_return(): end coroutine and return.
 #define co_return(...)                                                                  \
 do {                                                                                    \
-    __VA_ARGS__;                /* run before return, intent for handle return value */ \
     goto CO_RETURN;             /* return */                                            \
 CO_LABEL(__LINE__):;            /* redundant label for co_begin() */                    \
 } while (0)

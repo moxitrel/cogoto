@@ -1,80 +1,12 @@
-/* Internal
+/*
 
-    switch (pc) {
-    case  0: break;         // begin
-    case 11: goto yield_11; // restore
-    ...                     // restore
-    case  N: goto yield_N;  // restore
-    default: return;        // end
-    }
+* API
+- co_begin (...)    :: mark coroutine begin. List with line numbers of co_yield() and co_return().
+- co_end   ()       :: mark coroutine end.
+- co_yield ()       :: yield from coroutine.
+- co_return()       :: return with ending coroutine.
 
-    pc = 11;
-    return;
-yield_11:
-    ...
-
-    pc = __LINE__;
-    return;
-yield_N:
-    ...
-
-
-* Example
-** Source
-#include "gen_switch.hpp"
-
-struct T : public gen_t {   // inherit
-    int i;                  // as local variables
-
-    void f()                // coroutine function
-    {
-        co_begin(11);       // begin
-
-        for (i = 0; i < 9; i++) {
-            co_yield();     // yield
-        }
-
-        co_end();           // coroutine end
-    }
-};
-
-
-** Expand Macro
-#include "gen_switch.hpp"
-
-struct T : public gen_t {
-    int i;
-
-    void f()
-    {
-     //
-     // co_begin(11);
-     //
-        switch (pc) {
-        case  0: break;             // coroutine begin
-        case 11: goto CO_YIELD_11;  // restore
-        default: return;            // coroutine end
-        }
-
-        for (i = 0; i < 9; i++) {
-         //
-         // co_yield();
-         //
-            pc = 11;    // 1. save restore point, next call will be "case 17: goto CO_YIELD_17"
-            return;     // 2. yield
-    CO_YIELD_11:;       // 3. put a label after each return as restore point
-        }
-
-     //
-     // co_end();
-     //
-        pc = -1;
-    }
-};
-
-
-* Reference
-- Coroutines in C (https://www.chiark.greenend.org.uk/~sgtatham/coroutines.html)
+- .state() -> int   :: get the current running state.
 
 */
 #ifndef COGO_GEN_H
@@ -95,18 +27,13 @@ protected:
     int _pc = 0;
 public:
     // get the current running state
-    int state() const
+    int state() const noexcept
     {
         return _pc;
     }
 };
 
-//
-// NOTE: co_begin(), co_end(), co_yield(), co_return() are not expressions. They are statements.
-//
-
-// mark coroutine begin.
-// gen_t::co_begin(...);
+// gen_t::co_begin(...): mark coroutine begin.
 #define co_begin(...)                                   \
 do {                                                    \
     switch (gen_t::_pc) {                               \
@@ -114,8 +41,8 @@ do {                                                    \
         break;                                          \
     case -1:                    /* coroutine end    */  \
         goto CO_END;                                    \
- /* case  N:                */  /* restore          */  \
- /*     goto CO_YIELD_N;    */                          \
+ /* case  N:                  *//* restore          */  \
+ /*     goto CO_YIELD_N;      */                        \
     MAP(CASE_GOTO, __VA_ARGS__);                        \
     default:                    /* invalid _pc      */  \
         assert(((void)"_pc isn't valid.", false));      \
@@ -124,28 +51,24 @@ do {                                                    \
 } while (0)
 
 
-// yield from the coroutine
-// gen_t::co_yield();
+// gen_t::co_yield(): yield from the coroutine.
 #define co_yield(...)                                                                           \
 do {                                                                                            \
-    __VA_ARGS__;                /* run before return, intent for handle return value */         \
-    gen_t::_pc = __LINE__;      /* 1. save the restore point, at label CO_LABEL(__LINE__) */    \
+    gen_t::_pc = __LINE__;      /* 1. save the restore point, at label CO_YIELD_N */            \
     goto CO_END;                /* 2. return */                                                 \
 CO_LABEL(__LINE__):;            /* 3. put a label after each return as restore point */         \
 } while (0)
 
 
-// end coroutine and return.
-// gen_t::co_return();
+// gen_t::co_return(): end coroutine and return.
 #define co_return(...)                                                                          \
 do {                                                                                            \
-    __VA_ARGS__;                /* run before return, intent for handle return value */         \
     goto CO_RETURN;             /* return */                                                    \
+CO_LABEL(__LINE__):;            /* redundant label for co_begin() */                            \
 } while (0)
 
 
-// mark coroutine end.
-// gen_t::co_end()
+// gen_t::co_end(): mark coroutine end.
 #define co_end(...)                                         \
 do {                                                        \
 CO_RETURN:                                                  \

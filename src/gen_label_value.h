@@ -65,9 +65,9 @@ typedef struct {
     // start point where coroutine function continue to run after yield.
     const void *pc;
 
-    //   0: inited
-    //  >0: running
-    //  <0: stopped (-1: success)
+    //  0: inited
+    // >0: running
+    // <0: stopped (-1: success)
     int state;
 } gen_t;
 
@@ -94,7 +94,6 @@ do {                                                \
 // co_yield(gen_t *);
 #define co_yield(GEN, ...)                                                                      \
 do {                                                                                            \
-    __VA_ARGS__;                        /* run before return, intent for handle return value */ \
     GEN_PC(GEN) = &&CO_LABEL(__LINE__); /* 1. save the restore point, at label CO_YIELD_N */    \
     goto CO_END;                        /* 2. return */                                         \
 CO_LABEL(__LINE__):;                    /* 3. put label after each *return* as restore point */ \
@@ -102,10 +101,9 @@ CO_LABEL(__LINE__):;                    /* 3. put label after each *return* as r
 
 
 // co_return();
-#define co_return(...)                                                                          \
-do {                                                                                            \
-    __VA_ARGS__;                /* run before return, intent for handle return value */         \
-    goto CO_RETURN;             /* end coroutine */                                             \
+#define co_return(...)                          \
+do {                                            \
+    goto CO_RETURN;         /* end coroutine */ \
 } while (0)
 
 

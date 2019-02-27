@@ -5,7 +5,7 @@
 #include <time.h>
 
 //
-// send a signal to <reader> when counter finished
+// send a signal to <reader> when writer finished
 //
 typedef struct {
     co_t      co_t;
@@ -20,6 +20,7 @@ void writer(writer_t *co)
     for (; co->i > 0; co->i--) {
         co_yield(co);
     }
+    // send finish signal
     co_chan_write(co, co->chan, co);
 
     co_end(co);

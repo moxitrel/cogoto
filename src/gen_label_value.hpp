@@ -1,3 +1,14 @@
+/*
+
+* API
+- co_begin ()   :: mark coroutine begin. List with line numbers of co_yield() and co_return().
+- co_end   ()   :: mark coroutine end.
+- co_yield ()   :: yield from coroutine.
+- co_return()   :: return with ending coroutine.
+
+- .state() -> int   :: get the current running state.
+
+*/
 #ifndef COGO_GEN_H
 #define COGO_GEN_H
 
@@ -5,19 +16,19 @@
 #   define assert(...)  /* nop */
 #endif
 
-// gen_t: coroutine context.
+// gen_t: generator context.
 class gen_t {
 protected:
     // save the start point where coroutine continue to run when yield
     const void *_pc = nullptr;
     
-    //   0: inited
-    //  >0: running
-    //  <0: stopped
+    //  0: inited
+    // >0: running
+    // <0: stopped (-1: success)
     int _state = 0;
 public:
     // get the running state.
-    int state() const 
+    int state() const noexcept
     {
         return _state;
     }
@@ -37,7 +48,6 @@ do {                                                \
 // gen_t::co_yield();
 #define co_yield(...)                                                                           \
 do {                                                                                            \
-    __VA_ARGS__;                        /* run before return, intent for handle return value */ \
     gen_t::_pc = &&CO_LABEL(__LINE__);  /* 1. save the restore point, at label CO_YIELD_N */    \
     goto CO_END;                        /* 2. return */                                         \
 CO_LABEL(__LINE__):;                    /* 3. put label after each *return* as restore point */ \
@@ -45,10 +55,9 @@ CO_LABEL(__LINE__):;                    /* 3. put label after each *return* as r
 
 
 // gen_t::co_return();
-#define co_return(...)                                                                          \
-do {                                                                                            \
-    __VA_ARGS__;                /* run before return, intent for handle return value */         \
-    goto CO_RETURN;             /* return */                                                    \
+#define co_return(...)                      \
+do {                                        \
+    goto CO_RETURN;         /* return */    \
 } while (0)
 
 
@@ -57,7 +66,7 @@ do {                                                                            
 do {                                        \
 CO_RETURN:                                  \
     gen_t::_pc = &&CO_END;                  \
-    gen_t::_state = -1;    /* finish */     \
+    gen_t::_state = -1;     /* finish */    \
 CO_END:;                                    \
 } while (0)
 

@@ -3,8 +3,8 @@
 * API  (!!! not type safe !!!)
 - co_await(await_t *, await_t *)    :: call another coroutine.
 
-- await_t AWAIT(void(*)(await_t *)) :: await_t constructor.
-- await_run(await_t *)              :: run a coroutine until finish.
+- AWAIT(void(*)(await_t *)) -> await_t  :: await_t constructor.
+- await_run(await_t *)                  :: run a coroutine until finish.
 
 */
 #ifndef COGO_AWAIT_H
@@ -41,9 +41,6 @@ struct await_sch_t {
     .fun = (void(*)(await_t *))(FUN),   \
 })
 
-// co_await(await_t *, await_t *): call another coroutine.
-#define co_await(AWAIT, CALLEE) co_yield(await__call((await_t *)(AWAIT), (await_t *)(CALLEE)))
-
 // push callee to call stack
 inline static await_t *await__await(await_t *await, await_t *callee)
 {
@@ -58,6 +55,9 @@ inline static await_t *await__await(await_t *await, await_t *callee)
 
     return await;
 }
+
+// co_await(await_t *, await_t *): call another coroutine.
+#define co_await(AWAIT, CALLEE) co_yield(await__await((await_t *)(AWAIT), (await_t *)(CALLEE)))
 
 // run the coroutine at stack top until yield
 inline static void sch_step(await_sch_t *sch)
