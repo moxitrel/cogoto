@@ -1,0 +1,113 @@
+/* Use Duff's Device (Protothreads)
+
+* API
+CO_BEGIN      : coroutine begin label.
+CO_END        : coroutine end label.
+CO_YIELD      : yield from coroutine.
+CO_RETURN     : return from coroutine.
+CO_THIS       : the parameter name of coroutine function.
+CO_STATE(CO)  : get the current running state.
+     0: inited
+    >0: running
+    -1: finished
+
+* Example
+
+#include "yield_case.h"
+
+// nature number generator
+typedef struct {
+    cogo_yield_t    cogo_yield;
+    int             i;
+} nat_t;
+
+void nat_func(nat_t* CO_THIS)
+{
+CO_BEGIN:
+
+    for (CO_THIS->i = 0; ; CO_THIS->i++) {
+        CO_YIELD;
+    }
+
+CO_END:;
+}
+
+* Internal
+void nat_func(nat_t* CO_THIS)
+{
+    switch (CO_THIS->cogo_pc) {     // CO_BEGIN:
+    case  0:                        //
+
+        for (CO_THIS->i = 0; ; CO_THIS->i++) {
+
+            CO_THIS->cogo_pc = 11;  //
+            return;                 // CO_YIELD;
+    case 11:;                       //
+
+        }
+
+    }                               // CO_END:
+}
+
+* Drawbacks
+- No CO_YIELD allowed in *case* statement.
+
+* See Also
+- Coroutines in C   (https://www.chiark.greenend.org.uk/~sgtatham/coroutines.html)
+- Protothreads      (http://dunkels.com/adam/pt/expansion.html)
+
+*/
+#ifndef MOXITREL_COGO_YIELD_IMPL_H_
+#define MOXITREL_COGO_YIELD_IMPL_H_
+
+#ifdef assert
+#   define COGO_ASSERT(...) assert(__VA_ARGS__)
+#else
+#   define COGO_ASSERT(...) /*nop*/
+#endif
+
+// yield context
+typedef struct {
+    // start point where coroutine function continue to run after yield.
+    //   0: inited
+    //  >0: running
+    //  -1: finished
+    int cogo_pc;
+} cogo_yield_t;
+
+// cogo_yield_t.cogo_pc
+#define COGO_PC(CO)     (((cogo_yield_t*)(CO))->cogo_pc)
+
+// get the current running state
+#define CO_STATE(CO)    COGO_PC(CO)
+
+
+#define CO_BEGIN                                        \
+    switch (COGO_PC(CO_THIS)) {                         \
+    default:                /* invalid  pc      */      \
+        COGO_ASSERT(!"cogo_pc isn't valid");            \
+        goto cogo_exit;                                 \
+    case -1:                /* coroutine end    */      \
+        goto cogo_exit;                                 \
+    case  0                 /* coroutine begin  */
+
+
+#define CO_YIELD                                                                            \
+    do {                                                                                    \
+        COGO_PC(CO_THIS) = __LINE__;    /* 1. save the restore point, at case __LINE__: */  \
+        goto cogo_exit;                 /* 2. return */                                     \
+    case __LINE__:;                     /* 3. restore point */                              \
+    } while (0)
+
+
+#define CO_RETURN                                       \
+        goto cogo_return        /* end coroutine */     \
+
+
+#define CO_END                                          \
+    cogo_return:                                        \
+        COGO_PC(CO_THIS) = -1;  /* finish */            \
+    }                                                   \
+    cogo_exit
+
+#endif // MOXITREL_COGO_YIELD_IMPL_H_

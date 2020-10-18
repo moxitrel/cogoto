@@ -1,155 +1,102 @@
 * Introduction
 A stackless coroutine library for C/C++, implemented yield, await, concurrency and channel.
 
-* Features
-- Easy to use
-- Portable
-- Fast
-- Reenterable
-
 * Overview
-*** C
 #+BEGIN_SRC C
 #include "cogo.h"
 
-typedef struct {
-    co_t co_t;
-
-    //
-    // declare coroutine local variables, return values as struct filed
-    //
-} <T>;
-
-void fun(<T> *co)
+co_declare(CoroutineName, T var, ...)
 {
-    co_begin(co);
+co_begin:
 
     //
     // user code
     //
 
-    co_end(co);
+co_end:;
 }
-#+END_SRC
-
-*** C++
-#+BEGIN_SRC C++
-#include "cogo.h"
-
-class <T> : public co_t {
-    //
-    // declare local variables, return values as member variables.
-    //
-
-    void operator()()
-    {
-        co_begin();
-
-        //
-        // user codes
-        //
-
-        co_end();
-    }
-};
 #+END_SRC
 
 * Example
-*** Natural Number Generator (C)
+*** Natural number generator
 #+BEGIN_SRC C
 #include "cogo.h"
+#include <stdio.h>
 
-typedef struct {
-    co_t co_t;
-                //
-    int value;  // declare local variables and return values
-                //
-} nat_t;
-
-void nat(nat_t *co)
+co_declare(Nat, int value)
 {
-    co_begin(co);
-                                            //
-    for (co->value = 0; ; co->value++) {    //
-        co_yield(co);                       // user code
-    }                                       //
-                                            //
-    co_end(co);
+co_begin:
+
+    for (co_this->value = 0; ; co_this->value++) {
+        co_yield;
+    }
+
+co_end:;
 }
 
 int main()
 {
-    nat_t n = {
-        .co_t = CO(nat),
-    };
+    Nat n = co_make(Nat);
 
-    nat(&n);    // n.value: 0
-    nat(&n);    // n.value: 1
-    nat(&n);    // n.value: 2
+    CO_STEP(&n);
+    printf("n.value: %d\n", n.value);   // n.value: 0
+
+    CO_STEP(&n);
+    printf("n.value: %d\n", n.value);   // n.value: 1
+
+    CO_STEP(&n);
+    printf("n.value: %d\n", n.value);   // n.value: 2
 }
 #+END_SRC
 
-*** Fibonacci Number (C++)
-#+BEGIN_SRC C++
+*** Fibonacci number
+#+BEGIN_SRC C
 #include "cogo.h"
+#include <stdio.h>
+#include <stdlib.h>
 
-class Fibonacci : public co_t {
-    unsigned int n;     // arg
-    unsigned int v;     // return value
-    Fibonacci *fib_n1;  // local variable, f(n-1)
-    Fibonacci *fib_n2;  // local variable, f(n-2)
+co_declare(Fibonacci, int n, int v, Fibonacci* fib_n1, Fibonacci* fib_n2)
+{
+co_begin:
 
-    void operator()()
-    {
-        co_begin();
+    if (co_this->n == 0) {          // f(0) = 0
+        co_this->v = 0;
+    } else if (co_this->n == 1) {   // f(1) = 1
+        co_this->v = 1;
+    } else {                        // f(n) = f(n-1) + f(n-2)
+        co_this->fib_n1 = malloc(sizeof(*co_this->fib_n1));
+        co_this->fib_n2 = malloc(sizeof(*co_this->fib_n2));
 
-        if (n == 0) {           // f(0) = 0
-            v = 0;
-        } else if (n == 1) {    // f(1) = 1
-            v = 1;
-        } else {                // f(n) = f(n-1) + f(n-2)
-            fib_n1 = new Fibonacci(n - 1);
-            fib_n2 = new Fibonacci(n - 2);
+        *co_this->fib_n1 = co_make(Fibonacci, n-1);
+        *co_this->fib_n2 = co_make(Fibonacci, n-2);
+        co_await(co_this->fib_n1);  // run f(n-1)
+        co_await(co_this->fib_n2);  // run f(n-2)
+        co_this->v = co_this->fib_n1->v + co_this->fib_n2->v;
 
-            co_await(fib_n1);   // call f(n-1)
-            co_await(fib_n2);   // call f(n-2)
-            v = fib_n1->value() + fib_n2->value();
-
-            delete fib_n1;
-            delete fib_n2;
-        }
-
-        co_end();
+        free(co_this->fib_n1);
+        free(co_this->fib_n2);
     }
 
-public:
-    Fibonacci(unsigned int n)
-        : n(n)
-    {}
-
-    unsigned int value()
-    {
-        return v;
-    }
-};
+co_end:;
+}
 
 int main()
 {
-    auto fib = Fibonacci(9);
-    fib.run();
-    fib.value();    // 34
+    Fibonacci fib = co_make(Fibonacci, 9);
+    CO_RUN(&fib);
+    printf("%d\n", fib.v);  // 34
 }
 #+END_SRC
 
-*** Channel (C++)
-#+BEGIN_SRC C++
+*** Channel
+#+BEGIN_SRC C
 #include "cogo.h"
 #include <iostream>
 #include <time.h>
 
 // send a signal to <reader> when writer finished
 class writer_t : public co_t {
-    chan_t<0> &chan;
+    CHAN_T<0> &chan;
     unsigned long i;
 
     void operator()()
@@ -159,13 +106,13 @@ class writer_t : public co_t {
         for (; i > 0; i--) {        // countdown
             co_yield();
         }
-        co_chan_write(chan, this);  // send finish signal
+        CHAN_WRITE(chan, this);  // send finish signal
 
         co_end();
     }
 
 public:
-    writer_t(chan_t<0> &chan, unsigned long i)
+    writer_t(CHAN_T<0> &chan, unsigned long i)
         : chan(chan)
         , i(i)
     {}
@@ -174,7 +121,7 @@ public:
 
 // wait <writer>s finished
 class reader_t : public co_t {
-    chan_t<0> &chan;
+    CHAN_T<0> &chan;
     writer_t   writers[2];
     void      *msg;
     time_t     t;
@@ -184,20 +131,20 @@ class reader_t : public co_t {
         co_begin();
 
         // create 2 new coroutines
-        co_start(writers[0]);
-        co_start(writers[1]);
+        CO_START(writers[0]);
+        CO_START(writers[1]);
 
         // wait finish
-        co_chan_read(chan, msg);    // receive finish signal
+        CHAN_READ(chan, msg);    // receive finish signal
         std::cout << msg << " finished: " << clock() * 1.0 / CLOCKS_PER_SEC << "s\n";
-        co_chan_read(chan, msg);    // receive finish signal
+        CHAN_READ(chan, msg);    // receive finish signal
         std::cout << msg << " finished: " << clock() * 1.0 / CLOCKS_PER_SEC << "s\n";
 
         co_end();
     }
 
 public:
-    reader_t(chan_t<0> &&chan)
+    reader_t(CHAN_T<0> &&chan)
         : chan(chan)
         , writers{writer_t(chan, 1ul << 26), writer_t(chan, 1ul << 27)}
     {}
@@ -205,14 +152,15 @@ public:
 
 int main()
 {
-    reader_t(chan_t<0>()).run();
+    // 0x7ffeee071960 finished: 4.08375s
+    // 0x7ffeee0719a8 finished: 6.18752s
+    reader_t(CHAN_T<0>()).run();
 }
 #+END_SRC
 
 * Getting Started
 ** Requirement
 - C99
-- C++11
 
 *** C++
 #+BEGIN_SRC C++
@@ -276,8 +224,8 @@ class CoroutineExample : public co_t {
         co_begin();             // 4. coroutine begin
 
                                 // 5. user code
-        co_start(coroutine1);   // add coroutine1 to scheduler
-        co_start(coroutine2);   // add coroutine2 to scheduler
+        CO_START(coroutine1);   // add coroutine1 to scheduler
+        CO_START(coroutine2);   // add coroutine2 to scheduler
                                 //
 
         co_end();               // 4. coroutine end
@@ -329,8 +277,8 @@ void nat_gen(nat_gen_t *co) // 3. define coroutine function with the type "void 
 
     co_end(co);             // 4. set coroutine end
 }
-                            // 6. define constructor, init co_t member with CO()
-#define NAT_GEN()   ((nat_gen_t){.co = CO(nat_gen),})
+                            // 6. define constructor, init co_t member with co_make()
+#define NAT_GEN()   ((nat_gen_t){.co = co_make(nat_gen),})
 
 
 int main(void)
@@ -350,17 +298,17 @@ int main(void)
 - co_begin ()      :: Set coroutine begin.
                       List with the line numbers (__LINE__) of macros
                         *co_yield()*,
-                        *co_return()*,
+                        *CO_RETURN()*,
                         *co_await()*,
-                        *co_start()*,
+                        *CO_START()*,
                         *co_wait()*,
                         *co_broadcast()*,
                       or omit if GNUC extension enabled.
 - co_end   ()      :: Set coroutine end.
 - co_yield ()      :: Yield.
-- co_return()      :: Return with ending coroutine.
+- CO_RETURN()      :: Return with ending coroutine.
 - co_await(co_t &) :: Await another coroutine to finish.
-- co_start(co_t &) :: Add a coroutine to scheduler to run.
+- CO_START(co_t &) :: Add a coroutine to scheduler to run.
 - co_wait     (co_blocking_t &) :: block current coroutine until notified.
 - co_broadcast(co_blocking_t &) :: wake up all coroutines blocked by specified co_blocking_t.
 
@@ -374,12 +322,12 @@ int main(void)
 - co_begin (co_t *)         :: Mark coroutine begin.
 - co_end   (co_t *)         :: Mark coroutine end.
 - co_yield (co_t *)         :: Yield from coroutine.
-- co_return(co_t *)         :: Return with ending coroutine.
+- CO_RETURN(co_t *)         :: Return with ending coroutine.
 - co_await (co_t *, co_t *) :: Await another coroutine to finish.
-- co_start (co_t *, co_t *) :: Add a coroutine to scheduler to run.
+- CO_START (co_t *, co_t *) :: Add a coroutine to scheduler to run.
 
-- co_run  (co_t *) :: loop running until finish all coroutines
-+ co_state(co_t *) :: Return the current running state of coroutine /obj/.
+- CO_RUN  (co_t *) :: loop running until finish all coroutines
++ CO_STATE(co_t *) :: Return the current running state of coroutine /obj/.
   -  0: ready
   - >0: running
   - <0: stopped, coroutine is finished
