@@ -97,11 +97,11 @@ TEST_F(Co, Run)
 }
 
 
-CO_DECLARE(Recv, co_chan_t* c, co_msg_t* msgptr)
+CO_DECLARE(Recv, co_chan_t* c, co_msg_t msgNext)
 {
 CO_BEGIN:
 
-    CO_CHAN_READ(CO_THIS->c, &CO_THIS->msgptr);
+    CO_CHAN_READ(CO_THIS->c, &CO_THIS->msgNext);
 
 CO_END:;
 }
@@ -132,5 +132,5 @@ TEST(Chan, ReadWrite)
             CO_MAKE(Recv, &c0),
             CO_MAKE(Send, &c0));
     co_run((co_t*)&entry);
-    EXPECT_EQ(&entry.send1.msg, entry.recv1.msgptr);
+    EXPECT_EQ(&entry.send1.msg, entry.recv1.msgNext.next);
 }

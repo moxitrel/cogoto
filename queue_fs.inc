@@ -1,17 +1,17 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#define COGO_QUEUE_T(T)         COGO_QUEUE_T_(T)
-#define COGO_QUEUE_T_(T)        T##_queue_t
+#define COGO_QUEUE_T(T)         COGO_QUEUE_T1(T)
+#define COGO_QUEUE_T1(T)        T##_queue_t
 
-#define COGO_QUEUE_EMPTY(T)     COGO_QUEUE_EMPTY_(T)
-#define COGO_QUEUE_EMPTY_(T)    T##_queue_empty
+#define COGO_QUEUE_EMPTY(T)     COGO_QUEUE_EMPTY1(T)
+#define COGO_QUEUE_EMPTY1(T)    T##_queue_empty
 
-#define COGO_QUEUE_POP(T)       COGO_QUEUE_POP_(T)
-#define COGO_QUEUE_POP_(T)      T##_queue_pop
+#define COGO_QUEUE_POP(T)       COGO_QUEUE_POP1(T)
+#define COGO_QUEUE_POP1(T)      T##_queue_pop
 
-#define COGO_QUEUE_PUSH(T)      COGO_QUEUE_PUSH_(T)
-#define COGO_QUEUE_PUSH_(T)     T##_queue_push
+#define COGO_QUEUE_PUSH(T)      COGO_QUEUE_PUSH1(T)
+#define COGO_QUEUE_PUSH1(T)     T##_queue_push
 
 typedef struct {
     COGO_QUEUE_ITEM_T* head;
