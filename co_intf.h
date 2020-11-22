@@ -46,9 +46,9 @@ struct cogo_co {
     cogo_yield_t cogo_yield;
 
     // the coroutine function
-    void (*func)(void*);
+    void (*func)(cogo_co_t*);
 
-    // build call stack
+    // build call stack, !!!REQUIRE NO LOOP EXISTS!!!
     cogo_co_t* caller;
 
     // scheduler, updated by cogo_sch_step()
@@ -116,27 +116,29 @@ COGO_INLINE int cogo_co_start(cogo_co_t* thiz, cogo_co_t* co)
 COGO_INLINE cogo_co_t* cogo_sch_step(cogo_sch_t* sch)
 {
     COGO_ASSERT(sch);
-
     while (sch->stack_top) {
         sch->stack_top->sch = sch;
         sch->stack_top->func(sch->stack_top);
         if (!sch->stack_top) {
             // blocked
             break;
-        } else if (CO_STATE(sch->stack_top) > 0) {
+        }
+        if (CO_STATE(sch->stack_top) > 0) {
             // yield
             cogo_sch_push(sch, sch->stack_top);
             break;
-        } else if (CO_STATE(sch->stack_top) == 0) {
+        }
+        if (CO_STATE(sch->stack_top) == 0) {
             // await
-            ;
-        } else if (CO_STATE(sch->stack_top) == -1) {
+            continue;
+        }
+        if (CO_STATE(sch->stack_top) == -1) {
             // return
             sch->stack_top = sch->stack_top->caller;
-        } else {
-            COGO_ASSERT(!"unexpected case");
-            break;  // discard the coroutine
+            continue;
         }
+        COGO_ASSERT(!"unexpected case");
+        break;  // discard the coroutine
     }
     return sch->stack_top = cogo_sch_pop(sch);
 }
@@ -151,7 +153,7 @@ COGO_INLINE cogo_co_t* cogo_sch_step(cogo_sch_t* sch)
 #undef CO_MAKE
 #define CO_MAKE(NAME, ...)                                      \
     ((NAME){                                                    \
-        {.func = (void(*)(void*))(NAME##_func)},                \
+        {.func = (void(*)(cogo_co_t*))(NAME##_func)},           \
         __VA_ARGS__                                             \
     })
 
