@@ -3,8 +3,8 @@
 MAP(F, ...):
 
 */
-#ifndef MOXITREL_COGO_HELPER_H_
-#define MOXITREL_COGO_HELPER_H_
+#ifndef MOXITREL_COGO_UTILS_H_
+#define MOXITREL_COGO_UTILS_H_
 
 // Get nth element of padding. (BUG)
 // e.g. ARG_GET1((p1)      , (PADDING))  -> P1
@@ -108,4 +108,4 @@ MAP(F, ...):
 
 #define ID(X)   X
 
-#endif // MOXITREL_COGO_HELPER_H_
+#endif // MOXITREL_COGO_UTILS_H_

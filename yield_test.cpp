@@ -20,10 +20,13 @@ CO_BEGIN:
 CO_END:;
 }
 
-TEST(cogo_yield_t, state_after_yield)
+TEST(cogo_yield_t, Yield)
 {
-    CogoYield cogoYield = {.v = 0};
+    CogoYield cogoYield = {
+        .v = 0,
+    };
     EXPECT_EQ(CO_STATE(&cogoYield), 0);     // init
+    EXPECT_EQ(cogoYield.v, 0);
 
     CogoYield_func(&cogoYield);
     EXPECT_GT(CO_STATE(&cogoYield), 0);     // running
@@ -31,6 +34,11 @@ TEST(cogo_yield_t, state_after_yield)
 
     CogoYield_func(&cogoYield);
     EXPECT_EQ(CO_STATE(&cogoYield), -1);    // end
+    EXPECT_EQ(cogoYield.v, 2);
+
+    // noop when coroutine finished
+    CogoYield_func(&cogoYield);
+    EXPECT_EQ(CO_STATE(&cogoYield), -1);
     EXPECT_EQ(cogoYield.v, 2);
 }
 
@@ -46,37 +54,48 @@ CO_BEGIN:
 CO_END:;
 }
 
-TEST(cogo_yield_t, state_after_return)
+TEST(cogo_yield_t, Return)
 {
-    CogoReturn cogoReturn = {.v = 0};
+    CogoReturn cogoReturn = {
+        .v = 0,
+    };
     EXPECT_EQ(CO_STATE(&cogoReturn), 0);    // init
+    EXPECT_EQ(cogoReturn.v, 0);
 
     CogoReturn_func(&cogoReturn);
     EXPECT_EQ(CO_STATE(&cogoReturn), -1);   // end
     EXPECT_EQ(cogoReturn.v, 1);
+
+    // noop
+    CogoReturn_func(&cogoReturn);
+    EXPECT_EQ(CO_STATE(&cogoReturn), -1);
+    EXPECT_EQ(cogoReturn.v, 1);
 }
 
 
-CO_DECLARE(OutLabel, int begin, int end)
+CO_DECLARE(ProEpiLogue, int enter, int exit)
 {
-    CO_THIS->begin++;
+    CO_THIS->enter++;
 
 CO_BEGIN:
     CO_YIELD;
     CO_YIELD;
 CO_END:
 
-    CO_THIS->end++;
+    CO_THIS->exit++;
 }
 
-TEST(cogo_yield_t, always_run_before_or_after)
+TEST(cogo_yield_t, PrologueEpilogue)
 {
-    OutLabel outLabel = {.begin=0, .end=0};
+    ProEpiLogue proEpiLogue = {
+        .enter = 0,
+        .exit = 0,
+    };
 
-    while(CO_STATE(&outLabel) >= 0) {
-        OutLabel_func(&outLabel);
+    while(CO_STATE(&proEpiLogue) >= 0) {
+        ProEpiLogue_func(&proEpiLogue);
     }
 
-    EXPECT_EQ(outLabel.begin, 3);
-    EXPECT_EQ(outLabel.end, 3);
+    EXPECT_EQ(proEpiLogue.enter, 3);
+    EXPECT_EQ(proEpiLogue.exit, 3);
 }

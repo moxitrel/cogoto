@@ -108,8 +108,8 @@ cogo_enter
 // Make goto label.
 // e.g. COGO_LABEL(13)       -> cogo_yield_13
 //      COGO_LABEL(__LINE__) -> cogo_yield_118
-#define COGO_LABEL          COGO_LABEL_N(__LINE__)
-#define COGO_LABEL_N(...)   COGO_LABEL_N_(__VA_ARGS__)
-#define COGO_LABEL_N_(N)    cogo_yield_##N
+#define COGO_LABEL          COGO_LABEL1(__LINE__)
+#define COGO_LABEL1(...)    COGO_LABEL2(__VA_ARGS__)
+#define COGO_LABEL2(N)      cogo_yield_##N
 
 #endif // MOXITREL_COGO_YIELD_IMPL_H_

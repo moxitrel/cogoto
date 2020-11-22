@@ -22,7 +22,7 @@ NAME_func               : coroutine function name, made by CO_DECLARE(NAME), e.g
 #   include "yield_case.h"
 #endif
 
-#include "helper.h"
+#include "utils.h"
 
 // COGO_DECLARE(NAME, ...): define a coroutine named <NAME>
 //
