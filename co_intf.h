@@ -145,7 +145,7 @@ COGO_INLINE cogo_co_t* cogo_sch_step(cogo_sch_t* sch)
 
 #undef CO_DECLARE
 #define CO_DECLARE(NAME, ...)                                   \
-    IFNIL(__VA_ARGS__)(                                         \
+    COGO_IFNIL(__VA_ARGS__)(                                    \
         COGO_DECLARE(NAME, cogo_co_t cogo_co),                  \
         COGO_DECLARE(NAME, cogo_co_t cogo_co, __VA_ARGS__)      \
     )
