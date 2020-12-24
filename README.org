@@ -1,5 +1,5 @@
 * Introduction
-A stackless coroutine library for C/C++, implemented yield, await, concurrency and channel.
+A stackless coroutine library for C, implemented yield, await, concurrency and channel.
 
 * Overview
 #+BEGIN_SRC C
@@ -334,4 +334,4 @@ int main(void)
 
 * See Also
 - [[https://www.chiark.greenend.org.uk/~sgtatham/coroutines.html][Coroutines in C]]
-- [[http://dunkels.com/adam/pt/][Protothreads]]    
+- [[http://dunkels.com/adam/pt/][Protothreads]]

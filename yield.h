@@ -42,24 +42,24 @@ NAME_func               : coroutine function name, made by CO_DECLARE(NAME), e.g
 #define COGO_COMMA_extern           ,
 #define COGO_REMOVE_LINKAGE_static
 #define COGO_REMOVE_LINKAGE_extern
-#define COGO_DECLARE(NAME, ...)     COGO_DECLARE_N(ARG_COUNT(COGO_COMMA_##NAME), NAME, __VA_ARGS__)
+#define COGO_DECLARE(NAME, ...)     COGO_DECLARE_N(COGO_ARG_COUNT(COGO_COMMA_##NAME), NAME, __VA_ARGS__)
 #define COGO_DECLARE_N(...)         COGO_DECLARE_N_(__VA_ARGS__)
 #define COGO_DECLARE_N_(N, ...)     COGO_DECLARE_N_##N(__VA_ARGS__)
 #define COGO_DECLARE_N_1(NAME, ...) /* NAME: Type */                        \
     typedef struct NAME NAME;                                               \
     struct NAME {                                                           \
-        MAP(;, ID, __VA_ARGS__);                                            \
+        COGO_MAP(;, COGO_ID, __VA_ARGS__);                                            \
     };                                                                      \
     CO_DEFINE(NAME)
 #define COGO_DECLARE_N_2(NAME, ...) /* NAME: static Type */                 \
     typedef struct COGO_REMOVE_LINKAGE_##NAME COGO_REMOVE_LINKAGE_##NAME;   \
     struct COGO_REMOVE_LINKAGE_##NAME {                                     \
-        MAP(;, ID, __VA_ARGS__);                                            \
+        COGO_MAP(;, COGO_ID, __VA_ARGS__);                                       \
     };                                                                      \
     CO_DEFINE(COGO_REMOVE_LINKAGE_##NAME)
 
 #define CO_DECLARE(NAME, ...)                                   \
-    IFNIL(__VA_ARGS__)(                                         \
+    COGO_IFNIL(__VA_ARGS__)(                                    \
         COGO_DECLARE(NAME, cogo_yield_t cogo_gen),              \
         COGO_DECLARE(NAME, cogo_yield_t cogo_gen, __VA_ARGS__)  \
     )
