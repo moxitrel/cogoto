@@ -21,10 +21,10 @@ COGO_INLINE cogo_co_t* cogo_sch_pop(cogo_sch_t* sch)
     return sch->stack_top;
 }
 
-static void cogo_co_run(cogo_co_t* main)
+static void cogo_co_run(void* co)
 {
     cogo_sch_t sch = {
-        .stack_top = main,
+        .stack_top = (cogo_co_t*)co,
     };
     while (cogo_sch_step(&sch))
     {}
@@ -145,7 +145,7 @@ TEST(cogo_co_t, Run)
     };
 
     for (size_t i = 0; i < sizeof(example) / sizeof(example[0]); i++) {
-        cogo_co_run((cogo_co_t*)&example[i].fib);
+        cogo_co_run(&example[i].fib);
         ASSERT_EQ(example[i].fib.v, example[i].value);
     }
 }

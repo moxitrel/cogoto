@@ -79,11 +79,11 @@ COGO_INLINE cogo_co_t* cogo_sch_pop(cogo_sch_t* sch)
     return (cogo_co_t*)COGO_QUEUE_POP(co_t)(&((co_sch_t*)sch)->q);
 }
 
-COGO_INLINE void co_run(co_t* main)
+COGO_INLINE void co_run(void* co)
 {
     co_sch_t sch = {
         .cogo_sch = {
-            .stack_top = (cogo_co_t*)main,
+            .stack_top = (cogo_co_t*)co,
         },
     };
     while (cogo_sch_step((cogo_sch_t*)&sch))
@@ -197,7 +197,7 @@ COGO_INLINE int cogo_chan_write(co_t* co, co_chan_t* chan, co_msg_t* msg)
 
 typedef co_sch_t co_step_t;
 
-COGO_INLINE co_step_t co_step_begin(co_t* co)
+COGO_INLINE co_step_t co_step_begin(void* co)
 {
     return (co_sch_t){
         .cogo_sch = {

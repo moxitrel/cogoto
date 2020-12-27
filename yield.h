@@ -56,7 +56,7 @@ NAME_func               : coroutine function name, made by CO_DECLARE(NAME), e.g
     struct COGO_REMOVE_LINKAGE_##NAME {                                     \
         COGO_MAP(;, COGO_ID, __VA_ARGS__);                                  \
     };                                                                      \
-    CO_DEFINE(NAME)
+    CO_DEFINE(COGO_REMOVE_LINKAGE_##NAME)
 
 #define CO_DECLARE(NAME, ...)                                   \
     COGO_IFNIL(__VA_ARGS__)(                                    \

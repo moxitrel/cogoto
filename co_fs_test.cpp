@@ -36,6 +36,6 @@ TEST(Chan, ReadWrite)
     auto entry = CO_MAKE(Entry,
             CO_MAKE(Recv, &c0),
             CO_MAKE(Send, &c0));
-    co_run((co_t*)&entry);
+    co_run(&entry);
     EXPECT_EQ(&entry.send1.msg, entry.recv1.msgNext.next);
 }
