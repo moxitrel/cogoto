@@ -26,8 +26,8 @@ COGO_INLINE int cogo_sch_push(cogo_sch_t*, cogo_co_t*);
 COGO_INLINE cogo_co_t* cogo_sch_pop(cogo_sch_t*);
 
 */
-#ifndef MOXITREL_COGO_CO_INTF_H_
-#define MOXITREL_COGO_CO_INTF_H_
+#ifndef MOXITREL_COGO_CO_H_
+#define MOXITREL_COGO_CO_H_
 
 #include "yield.h"
 
@@ -157,4 +157,4 @@ COGO_INLINE cogo_co_t* cogo_sch_step(cogo_sch_t* sch)
         __VA_ARGS__                                             \
     })
 
-#endif // MOXITREL_COGO_CO_INTF_H_
+#endif // MOXITREL_COGO_CO_H_

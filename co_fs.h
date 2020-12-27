@@ -6,14 +6,16 @@ CO_END                  : ...
 CO_YIELD                : ...
 CO_RETURN               : ...
 CO_THIS                 : ...
-CO_STATE  (CO)          : ...
-CO_DECLARE(NAME, ...)   : ...
-CO_DEFINE (NAME)        : ...
-CO_AWAIT(cogo_co_t*)    : ...
-CO_START(cogo_co_t*)    : ...
+CO_STATE    (CO)        : ...
+CO_DECLARE  (NAME, ...) : ...
+CO_DEFINE   (NAME)      : ...
+CO_AWAIT    (cogo_co_t*): ...
+CO_START    (cogo_co_t*): ...
 
 co_t                                    : coroutine type to be inherited
-co_run(co_t*)                           : run the coroutine until all finished
+co_run          (co_t*)                 : run the coroutine until all finished
+co_step_begin   (co_t*)                 : return co_step_t
+co_step         (co_step_t*)            : run the current coroutine until yield or finished
 
 co_msg_t                                : channel message type
 co_chan_t                               : channel type
@@ -25,9 +27,8 @@ CO_CHAN_READ (co_chan_t*, co_msg_t*)    : receive a message from channel, the re
 #ifndef MOXITREL_COGO_CO_IMPL_H_
 #define MOXITREL_COGO_CO_IMPL_H_
 
-#include "co_intf.h"
+#include "co.h"
 #include <stddef.h>
-#include <stdbool.h>
 
 typedef struct co       co_t;
 typedef struct co_sch   co_sch_t;
@@ -68,7 +69,7 @@ COGO_INLINE int cogo_sch_push(cogo_sch_t* sch, cogo_co_t* co)
     if (co != NULL) {
         COGO_QUEUE_PUSH(co_t)(&((co_sch_t*)sch)->q, (co_t*)co);
     }
-    return 0;
+    return 1;
 }
 
 // implement cogo_sch_pop()
@@ -192,5 +193,23 @@ COGO_INLINE int cogo_chan_write(co_t* co, co_chan_t* chan, co_msg_t* msg)
         {{.func = (void(*)(cogo_co_t*))(NAME##_func)}},         \
         __VA_ARGS__                                             \
     })
+
+
+typedef co_sch_t co_step_t;
+
+COGO_INLINE co_step_t co_step_begin(co_t* co)
+{
+    return (co_sch_t){
+        .cogo_sch = {
+            .stack_top = (cogo_co_t*)co,
+        },
+    };
+}
+
+COGO_INLINE co_t* co_step(co_step_t* thiz)
+{
+    COGO_ASSERT(thiz);
+    return (co_t*)cogo_sch_step((cogo_sch_t*)thiz);
+}
 
 #endif  // MOXITREL_COGO_CO_IMPL_H_
