@@ -30,13 +30,13 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
         target_link_libraries(yield_label_value_test
                 PRIVATE GTest::GTest GTest::Main)
 
-        # co_intf
-        add_executable(co_intf_test)
-        target_sources(co_intf_test
-                PRIVATE co_intf_test.cpp)
-        target_compile_features(co_intf_test
+        # co
+        add_executable(co_test)
+        target_sources(co_test
+                PRIVATE co_test.cpp)
+        target_compile_features(co_test
                 PRIVATE cxx_std_11)
-        target_link_libraries(co_intf_test
+        target_link_libraries(co_test
                 PRIVATE GTest::GTest GTest::Main)
 
         # co_fs
@@ -50,7 +50,7 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
 
         gtest_discover_tests(yield_case_test)
         gtest_discover_tests(yield_label_value_test)
-        gtest_discover_tests(co_intf_test)
+        gtest_discover_tests(co_test)
         gtest_discover_tests(co_fs_test)
     endif ()
 endif ()

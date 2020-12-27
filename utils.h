@@ -46,16 +46,16 @@
 
 
 // Count the number of arguments.
-#define COGO_ARG_COUNT(...)      COGO_ARG_COUNT_(__VA_ARGS__)
-#define COGO_ARG_COUNT_(...)     COGO_ARG_GET((__VA_ARGS__),(COGO_ARG_COUNT_PADDING))
+#define COGO_ARG_COUNT(...)      COGO_ARG_COUNT1(__VA_ARGS__)
+#define COGO_ARG_COUNT1(...)     COGO_ARG_GET((__VA_ARGS__),(COGO_ARG_COUNT_PADDING))
 #define COGO_ARG_COUNT_PADDING                              \
      19,  18,  17,  16,  15,  14,  13,  12,  11,  10,       \
       9,   8,   7,   6,   5,   4,   3,   2,   1,   0
 
 // Is arg list empty?
 #define COGO_ARG_EMPTY(...)      COGO_ARG_EMPTY1(__VA_ARGS__)
-#define COGO_ARG_EMPTY1(...)     COGO_ARG_GET((__VA_ARGS__),(COGO_ARG_EMPTY1PADDING))
-#define COGO_ARG_EMPTY1PADDING                              \
+#define COGO_ARG_EMPTY1(...)     COGO_ARG_GET((__VA_ARGS__),(COGO_ARG_EMPTY_PADDING))
+#define COGO_ARG_EMPTY_PADDING                              \
       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,       \
       0,   0,   0,   0,   0,   0,   0,   0,   0,   1
 
@@ -89,17 +89,17 @@
 #define COGO_MAP_19(SEP, F, X, ...)   F(X) SEP COGO_MAP_18(SEP, F, __VA_ARGS__)
 
 // COGO_IFNIL(ID)(SK,FK): Expand to <SK> if ID defined as empty, i.e. "#define ID", else FK
-#define COGO_IFNIL(...)                  COGO_IFNIL_BOOL(COGO_ARG_EMPTY(__VA_ARGS__))
-#define COGO_IFNIL_BOOL(...)             COGO_IFNIL_BOOL1(__VA_ARGS__)
-#define COGO_IFNIL_BOOL1(BOOL)           COGO_IFNIL_BOOL_##BOOL
-#define COGO_IFNIL_BOOL_1(...)           COGO_IFNIL_BOOL_1_(__VA_ARGS__)
-#define COGO_IFNIL_BOOL_0(...)           COGO_IFNIL_BOOL_0_(__VA_ARGS__)
-#define COGO_IFNIL_BOOL_1_(SK,...)       SK
-#define COGO_IFNIL_BOOL_0_(SK,...)       COGO_IFNIL_BOOL_0_BOOL(COGO_ARG_EMPTY(__VA_ARGS__), __VA_ARGS__)
-#define COGO_IFNIL_BOOL_0_BOOL(...)      COGO_IFNIL_BOOL_0_BOOL_(__VA_ARGS__)
-#define COGO_IFNIL_BOOL_0_BOOL_(N,...)   COGO_IFNIL_BOOL_0_BOOL_##N(__VA_ARGS__)
-#define COGO_IFNIL_BOOL_0_BOOL_1(...)
-#define COGO_IFNIL_BOOL_0_BOOL_0(FK)     FK
+#define COGO_IFNIL(...)                 COGO_IFNIL_B(COGO_ARG_EMPTY(__VA_ARGS__))
+#define COGO_IFNIL_B(...)               COGO_IFNIL_B1(__VA_ARGS__)
+#define COGO_IFNIL_B1(BOOL)             COGO_IFNIL_B_##BOOL
+#define COGO_IFNIL_B_1(...)             COGO_IFNIL_B_11(__VA_ARGS__)
+#define COGO_IFNIL_B_0(...)             COGO_IFNIL_B_00(__VA_ARGS__)
+#define COGO_IFNIL_B_11(SK,...)         SK
+#define COGO_IFNIL_B_00(SK,...)         COGO_IFNIL_B_0_B(COGO_ARG_EMPTY(__VA_ARGS__), __VA_ARGS__)
+#define COGO_IFNIL_B_0_B(...)           COGO_IFNIL_B_0_B1(__VA_ARGS__)
+#define COGO_IFNIL_B_0_B1(N,...)        COGO_IFNIL_B_0_B_##N(__VA_ARGS__)
+#define COGO_IFNIL_B_0_B_1(...)
+#define COGO_IFNIL_B_0_B_0(FK)          FK
 
 #define COGO_ID(X)   X
 

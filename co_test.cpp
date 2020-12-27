@@ -1,5 +1,5 @@
 #include <assert.h>
-#include "co_intf.h"
+#include "co.h"
 #include "gtest/gtest.h"
 #include <stdlib.h>
 

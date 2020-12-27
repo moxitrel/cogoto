@@ -86,6 +86,7 @@ cogo_enter
 #define CO_YIELD                                                            \
     do {                                                                    \
         COGO_PC(CO_THIS) = &&COGO_LABEL;    /* 1. save restore point */     \
+    /*  COGO_STATE(CO_THIS) = __LINE__; */                                  \
         goto cogo_exit;                     /* 2. return */                 \
     COGO_LABEL:;                            /* 3. restore point */          \
     } while (0)

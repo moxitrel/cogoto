@@ -1,6 +1,5 @@
 #include <assert.h>
 #include "co_fs.h"
-#include "co_intf.h"
 #include "gtest/gtest.h"
 
 CO_DECLARE(Recv, co_chan_t* c, co_msg_t msgNext)
