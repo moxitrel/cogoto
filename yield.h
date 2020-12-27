@@ -50,13 +50,14 @@ NAME_func               : coroutine function name, made by CO_DECLARE(NAME), e.g
     struct NAME {                                                           \
         COGO_MAP(;, COGO_ID, __VA_ARGS__);                                  \
     };                                                                      \
-    CO_DEFINE(NAME)
+    void NAME##_func(NAME* CO_THIS)
 #define COGO_DECLARE_N_2(NAME, ...)    /* NAME: static Type */              \
     typedef struct COGO_REMOVE_LINKAGE_##NAME COGO_REMOVE_LINKAGE_##NAME;   \
     struct COGO_REMOVE_LINKAGE_##NAME {                                     \
         COGO_MAP(;, COGO_ID, __VA_ARGS__);                                  \
     };                                                                      \
-    CO_DEFINE(COGO_REMOVE_LINKAGE_##NAME)
+    void NAME##_func(COGO_REMOVE_LINKAGE_##NAME* CO_THIS)
+
 
 #define CO_DECLARE(NAME, ...)                                   \
     COGO_IFNIL(__VA_ARGS__)(                                    \
