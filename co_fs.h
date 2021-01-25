@@ -66,9 +66,10 @@ struct co_sch {
 COGO_INLINE int cogo_sch_push(cogo_sch_t* sch, cogo_co_t* co)
 {
     COGO_ASSERT(sch);
-    if (co != NULL) {
-        COGO_QUEUE_PUSH(co_t)(&((co_sch_t*)sch)->q, (co_t*)co);
+    if (co == NULL) {
+        return 0;
     }
+    COGO_QUEUE_PUSH(co_t)(&((co_sch_t*)sch)->q, (co_t*)co);
     return 1;
 }
 
@@ -141,6 +142,7 @@ COGO_INLINE int cogo_chan_read(co_t* co, co_chan_t* chan, co_msg_t* msg_next)
 
         COGO_QUEUE_PUSH(co_msg_t)(&chan->mq, msg_next);
     } else {
+        // output
         msg_next->next = COGO_QUEUE_POP(co_msg_t)(&chan->mq);
     }
     chan->size--;
