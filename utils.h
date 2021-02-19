@@ -64,9 +64,9 @@
 //     -> CASE_GOTO(10);
 //        CASE_GOTO(20);
 //        CASE_GOTO(30)
-#define COGO_MAP(SEP, F, ...)    COGO_MAP_N(COGO_ARG_COUNT(__VA_ARGS__), SEP, F, __VA_ARGS__)
-#define COGO_MAP_N(...)          COGO_MAP_N1(__VA_ARGS__)
-#define COGO_MAP_N1(N, ...)      COGO_MAP_##N(__VA_ARGS__)
+#define COGO_MAP(SEP, F, ...)    COGO_MAP1(COGO_ARG_COUNT(__VA_ARGS__), SEP, F, __VA_ARGS__)
+#define COGO_MAP1(...)           COGO_MAP2(__VA_ARGS__)
+#define COGO_MAP2(N, ...)        COGO_MAP_##N(__VA_ARGS__)
 #define COGO_MAP_0(...)
 #define COGO_MAP_1( SEP, F, ...)      F(__VA_ARGS__)
 #define COGO_MAP_2( SEP, F, X, ...)   F(X) SEP COGO_MAP_1( SEP, F, __VA_ARGS__)
@@ -89,18 +89,18 @@
 #define COGO_MAP_19(SEP, F, X, ...)   F(X) SEP COGO_MAP_18(SEP, F, __VA_ARGS__)
 
 // COGO_IFNIL(ID)(SK,FK): Expand to <SK> if ID defined as empty, i.e. "#define ID", else FK
-#define COGO_IFNIL(...)                 COGO_IFNIL_B(COGO_ARG_EMPTY(__VA_ARGS__))
-#define COGO_IFNIL_B(...)               COGO_IFNIL_B1(__VA_ARGS__)
-#define COGO_IFNIL_B1(BOOL)             COGO_IFNIL_B_##BOOL
-#define COGO_IFNIL_B_1(...)             COGO_IFNIL_B_11(__VA_ARGS__)
-#define COGO_IFNIL_B_0(...)             COGO_IFNIL_B_00(__VA_ARGS__)
-#define COGO_IFNIL_B_11(SK,...)         SK
-#define COGO_IFNIL_B_00(SK,...)         COGO_IFNIL_B_0_B(COGO_ARG_EMPTY(__VA_ARGS__), __VA_ARGS__)
-#define COGO_IFNIL_B_0_B(...)           COGO_IFNIL_B_0_B1(__VA_ARGS__)
-#define COGO_IFNIL_B_0_B1(N,...)        COGO_IFNIL_B_0_B_##N(__VA_ARGS__)
-#define COGO_IFNIL_B_0_B_1(...)
-#define COGO_IFNIL_B_0_B_0(FK)          FK
+#define COGO_IFNIL(...)                 COGO_IFNIL1(COGO_ARG_EMPTY(__VA_ARGS__))
+#define COGO_IFNIL1(...)                COGO_IFNIL2(__VA_ARGS__)
+#define COGO_IFNIL2(BOOL)               COGO_IFNIL_##BOOL
+#define COGO_IFNIL_1(...)               COGO_IFNIL_T(__VA_ARGS__)
+#define COGO_IFNIL_T(SK,...)            SK
+#define COGO_IFNIL_0(...)               COGO_IFNIL_F(__VA_ARGS__)
+#define COGO_IFNIL_F(SK,...)            COGO_IFNIL_F1(COGO_ARG_EMPTY(__VA_ARGS__), __VA_ARGS__)
+#define COGO_IFNIL_F1(...)              COGO_IFNIL_F2(__VA_ARGS__)
+#define COGO_IFNIL_F2(N,...)            COGO_IFNIL_F_##N(__VA_ARGS__)
+#define COGO_IFNIL_F_1(...)
+#define COGO_IFNIL_F_0(FK)              FK
 
-#define COGO_ID(X)   X
+#define COGO_ID(X)                      X
 
 #endif // MOXITREL_COGO_UTILS_H_

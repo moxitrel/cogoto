@@ -5,9 +5,9 @@ CO_BEGIN      : ...
 CO_END        : ...
 CO_YIELD      : ...
 CO_RETURN     : ...
-CO_THIS       : ...
 CO_STATE(CO)  : ...
 
+CO_THIS                 : the parameter name of coroutine function.
 CO_DECLARE(NAME, ...)   : declare a coroutine.
 CO_DEFINE (NAME)        : define a declared coroutine which not defined.
 NAME_func               : coroutine function name, made by CO_DECLARE(NAME), e.g. Nat_func
@@ -42,16 +42,16 @@ NAME_func               : coroutine function name, made by CO_DECLARE(NAME), e.g
 #define COGO_COMMA_extern               ,
 #define COGO_REMOVE_LINKAGE_static
 #define COGO_REMOVE_LINKAGE_extern
-#define COGO_DECLARE(NAME, ...)         COGO_DECLARE_N(COGO_ARG_COUNT(COGO_COMMA_##NAME), NAME, __VA_ARGS__)
-#define COGO_DECLARE_N(...)             COGO_DECLARE_N1(__VA_ARGS__)
-#define COGO_DECLARE_N1(N, ...)         COGO_DECLARE_N_##N(__VA_ARGS__)
-#define COGO_DECLARE_N_1(NAME, ...)    /* NAME: Type */                     \
+#define COGO_DECLARE(NAME, ...)         COGO_DECLARE1(COGO_ARG_COUNT(COGO_COMMA_##NAME), NAME, __VA_ARGS__)
+#define COGO_DECLARE1(...)              COGO_DECLARE2(__VA_ARGS__)
+#define COGO_DECLARE2(N, ...)           COGO_DECLARE_##N(__VA_ARGS__)
+#define COGO_DECLARE_1(NAME, ...)       /* NAME: Type */                    \
     typedef struct NAME NAME;                                               \
     struct NAME {                                                           \
         COGO_MAP(;, COGO_ID, __VA_ARGS__);                                  \
     };                                                                      \
     void NAME##_func(NAME* CO_THIS)
-#define COGO_DECLARE_N_2(NAME, ...)    /* NAME: static Type */              \
+#define COGO_DECLARE_2(NAME, ...)       /* NAME: static Type */             \
     typedef struct COGO_REMOVE_LINKAGE_##NAME COGO_REMOVE_LINKAGE_##NAME;   \
     struct COGO_REMOVE_LINKAGE_##NAME {                                     \
         COGO_MAP(;, COGO_ID, __VA_ARGS__);                                  \
