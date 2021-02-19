@@ -46,7 +46,7 @@ struct cogo_co {
     cogo_yield_t cogo_yield;
 
     // the coroutine function
-    void (*func)(cogo_co_t*);
+    void (*func)(void*);
 
     // build call stack, !!!REQUIRE NO LOOP EXISTS!!!
     cogo_co_t* caller;
@@ -153,7 +153,7 @@ COGO_INLINE cogo_co_t* cogo_sch_step(cogo_sch_t* sch)
 #undef CO_MAKE
 #define CO_MAKE(NAME, ...)                                      \
     ((NAME){                                                    \
-        {.func = (void(*)(cogo_co_t*))(NAME##_func)},           \
+        {.func = NAME##_func},                                  \
         __VA_ARGS__                                             \
     })
 

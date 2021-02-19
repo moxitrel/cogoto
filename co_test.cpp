@@ -43,14 +43,14 @@ CO_DECLARE(F2, F3 f3)
 {
 CO_BEGIN:
     CO_YIELD;
-    CO_AWAIT(&CO_THIS->f3);
+    CO_AWAIT(&((F2*)CO_THIS)->f3);
 CO_END:;
 }
 
 CO_DECLARE(F1, F2 f2)
 {
 CO_BEGIN:
-    CO_AWAIT(&CO_THIS->f2);
+    CO_AWAIT(&((F1*)CO_THIS)->f2);
 CO_END:;
 }
 
@@ -102,29 +102,31 @@ unsigned fibonacci(unsigned n)
 
 CO_DECLARE(Fibonacci, unsigned n, unsigned v, Fibonacci* fib_n1, Fibonacci* fib_n2)
 {
+    Fibonacci* thiz = (Fibonacci*)CO_THIS;
+
 CO_BEGIN:
 
-    switch (CO_THIS->n) {
+    switch (thiz->n) {
     case 0:     // f(0) = 1
-        CO_THIS->v = 1;
+        thiz->v = 1;
         break;
     case 1:     // f(1) = 1
-        CO_THIS->v = 1;
+        thiz->v = 1;
         break;
     default:    // f(n) = f(n-1) + f(n-2)
-        CO_THIS->fib_n1 = (Fibonacci*)malloc(sizeof(*CO_THIS->fib_n1));
-        CO_THIS->fib_n2 = (Fibonacci*)malloc(sizeof(*CO_THIS->fib_n2));
-        ASSERT_NE(CO_THIS->fib_n1, nullptr);
-        ASSERT_NE(CO_THIS->fib_n2, nullptr);
-        *CO_THIS->fib_n1 = CO_MAKE(Fibonacci, CO_THIS->n - 1);
-        *CO_THIS->fib_n2 = CO_MAKE(Fibonacci, CO_THIS->n - 2);
+        thiz->fib_n1 = (Fibonacci*)malloc(sizeof(*thiz->fib_n1));
+        thiz->fib_n2 = (Fibonacci*)malloc(sizeof(*thiz->fib_n2));
+        ASSERT_NE(thiz->fib_n1, nullptr);
+        ASSERT_NE(thiz->fib_n2, nullptr);
+        *thiz->fib_n1 = CO_MAKE(Fibonacci, thiz->n - 1);
+        *thiz->fib_n2 = CO_MAKE(Fibonacci, thiz->n - 2);
 
-        CO_AWAIT(CO_THIS->fib_n1);  // eval f(n-1)
-        CO_AWAIT(CO_THIS->fib_n2);  // eval f(n-2)
+        CO_AWAIT(thiz->fib_n1);  // eval f(n-1)
+        CO_AWAIT(thiz->fib_n2);  // eval f(n-2)
 
-        CO_THIS->v = CO_THIS->fib_n1->v + CO_THIS->fib_n2->v;
-        free(CO_THIS->fib_n1);
-        free(CO_THIS->fib_n2);
+        thiz->v = thiz->fib_n1->v + thiz->fib_n2->v;
+        free(thiz->fib_n1);
+        free(thiz->fib_n2);
         break;
     }
 
