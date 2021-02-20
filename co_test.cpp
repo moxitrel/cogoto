@@ -18,6 +18,7 @@ COGO_INLINE int cogo_sch_push(cogo_sch_t* sch, cogo_co_t* co)
 // fetch the next coroutine to be run
 COGO_INLINE cogo_co_t* cogo_sch_pop(cogo_sch_t* sch)
 {
+    assert(sch);
     return sch->stack_top;
 }
 
@@ -30,7 +31,7 @@ static void cogo_co_run(void* co)
     {}
 }
 
-CO_DECLARE(F3)
+CO_DECLARE(static F3)
 {
 CO_BEGIN:
     CO_YIELD;
@@ -39,7 +40,7 @@ CO_BEGIN:
 CO_END:;
 }
 
-CO_DECLARE(F2, F3 f3)
+CO_DECLARE(static F2, F3 f3)
 {
 CO_BEGIN:
     CO_YIELD;
@@ -47,7 +48,7 @@ CO_BEGIN:
 CO_END:;
 }
 
-CO_DECLARE(F1, F2 f2)
+CO_DECLARE(static F1, F2 f2)
 {
 CO_BEGIN:
     CO_AWAIT(&((F1*)CO_THIS)->f2);
@@ -100,34 +101,38 @@ unsigned fibonacci(unsigned n)
     }
 }
 
-CO_DECLARE(Fibonacci, unsigned n, unsigned v, Fibonacci* fib_n1, Fibonacci* fib_n2)
+CO_DECLARE(static Fibonacci, unsigned n, unsigned v, Fibonacci* fib_n1, Fibonacci* fib_n2)
 {
     Fibonacci* thiz = (Fibonacci*)CO_THIS;
+    auto& n = thiz->n;
+    auto& v = thiz->v;
+    auto& fib_n1 = thiz->fib_n1;
+    auto& fib_n2 = thiz->fib_n2;
 
 CO_BEGIN:
 
-    switch (thiz->n) {
+    switch (n) {
     case 0:     // f(0) = 1
-        thiz->v = 1;
-        break;
+        v = 1;
+        CO_RETURN;
     case 1:     // f(1) = 1
-        thiz->v = 1;
-        break;
+        v = 1;
+        CO_RETURN;
     default:    // f(n) = f(n-1) + f(n-2)
-        thiz->fib_n1 = (Fibonacci*)malloc(sizeof(*thiz->fib_n1));
-        thiz->fib_n2 = (Fibonacci*)malloc(sizeof(*thiz->fib_n2));
-        ASSERT_NE(thiz->fib_n1, nullptr);
-        ASSERT_NE(thiz->fib_n2, nullptr);
-        *thiz->fib_n1 = CO_MAKE(Fibonacci, thiz->n - 1);
-        *thiz->fib_n2 = CO_MAKE(Fibonacci, thiz->n - 2);
+        fib_n1 = (Fibonacci*)malloc(sizeof(*fib_n1));
+        fib_n2 = (Fibonacci*)malloc(sizeof(*fib_n2));
+        ASSERT_NE(fib_n1, nullptr);
+        ASSERT_NE(fib_n2, nullptr);
+        *fib_n1 = CO_MAKE(Fibonacci, n - 1);
+        *fib_n2 = CO_MAKE(Fibonacci, n - 2);
 
-        CO_AWAIT(thiz->fib_n1);  // eval f(n-1)
-        CO_AWAIT(thiz->fib_n2);  // eval f(n-2)
+        CO_AWAIT(fib_n1);  // eval f(n-1)
+        CO_AWAIT(fib_n2);  // eval f(n-2)
 
-        thiz->v = thiz->fib_n1->v + thiz->fib_n2->v;
-        free(thiz->fib_n1);
-        free(thiz->fib_n2);
-        break;
+        v = fib_n1->v + fib_n2->v;
+        free(fib_n1);
+        free(fib_n2);
+        CO_RETURN;
     }
 
 CO_END:;

@@ -10,6 +10,7 @@ CO_STATE(CO)  : ...
 CO_THIS                 : the parameter name of coroutine function.
 CO_DECLARE(NAME, ...)   : declare a coroutine.
 CO_DEFINE (NAME)        : define a declared coroutine which not defined.
+CO_MAKE   (NAME, ...)   : coroutine maker.
 NAME_func               : coroutine function name, made by CO_DECLARE(NAME), e.g. Nat_func
 
 */
@@ -59,13 +60,14 @@ NAME_func               : coroutine function name, made by CO_DECLARE(NAME), e.g
     CO_DEFINE(NAME)
 
 
-#define CO_DECLARE(NAME, ...)                                   \
-    COGO_IFNIL(__VA_ARGS__)(                                    \
-        COGO_DECLARE(NAME, cogo_yield_t cogo_gen),              \
-        COGO_DECLARE(NAME, cogo_yield_t cogo_gen, __VA_ARGS__)  \
+#define CO_DECLARE(NAME, ...)                                               \
+    COGO_IFNIL(__VA_ARGS__)(                                                \
+        COGO_DECLARE(NAME, cogo_yield_t cogo_yield),                        \
+        COGO_DECLARE(NAME, cogo_yield_t cogo_yield, __VA_ARGS__)            \
     )
 
-#define CO_DEFINE(NAME)     \
-    void NAME##_func(void* CO_THIS)
+#define CO_DEFINE(NAME)                 void NAME##_func(void* CO_THIS)
+
+#define CO_MAKE(NAME, ...)              ((NAME){{0}, __VA_ARGS__})
 
 #endif // MOXITREL_COGO_YIELD_H_

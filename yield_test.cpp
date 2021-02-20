@@ -22,9 +22,7 @@ CO_END:;
 
 TEST(cogo_yield_t, Yield)
 {
-    CogoYield cogoYield = {
-        .v = 0,
-    };
+    CogoYield cogoYield = CO_MAKE(CogoYield, 0);
     EXPECT_EQ(CO_STATE(&cogoYield), 0);     // init
     EXPECT_EQ(cogoYield.v, 0);
 
@@ -43,7 +41,7 @@ TEST(cogo_yield_t, Yield)
 }
 
 
-CO_DECLARE(CogoReturn, int v)
+CO_DECLARE(static CogoReturn, int v)
 {
 CO_BEGIN:
 
@@ -56,9 +54,7 @@ CO_END:;
 
 TEST(cogo_yield_t, Return)
 {
-    CogoReturn cogoReturn = {
-        .v = 0,
-    };
+    CogoReturn cogoReturn = CO_MAKE(CogoReturn, 0);
     EXPECT_EQ(CO_STATE(&cogoReturn), 0);    // init
     EXPECT_EQ(cogoReturn.v, 0);
 
@@ -73,16 +69,18 @@ TEST(cogo_yield_t, Return)
 }
 
 
-CO_DECLARE(ProEpiLogue, int enter, int exit)
+CO_DECLARE(ProEpiLogue, int enter, int exit);
+CO_DEFINE(ProEpiLogue)
 {
-    ((ProEpiLogue*)CO_THIS)->enter++;
+    ProEpiLogue* thiz = (ProEpiLogue*)CO_THIS;
+    thiz->enter++;
 
 CO_BEGIN:
     CO_YIELD;
     CO_YIELD;
 CO_END:
 
-    ((ProEpiLogue*)CO_THIS)->exit++;
+    thiz->exit++;
 }
 
 TEST(cogo_yield_t, PrologueEpilogue)
