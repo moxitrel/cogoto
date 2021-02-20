@@ -21,22 +21,16 @@ cogo_co_t* cogo_sch_step(cogo_sch_t*)   : run the current coroutine until yield 
 * APIs should be implemented by user
 
 // Push a coroutine to the running queue.
-COGO_INLINE int cogo_sch_push(cogo_sch_t*, cogo_co_t*);
+inline static int cogo_sch_push(cogo_sch_t*, cogo_co_t*);
 
 // Pop a coroutine to be run.
-COGO_INLINE cogo_co_t* cogo_sch_pop(cogo_sch_t*);
+inline static cogo_co_t* cogo_sch_pop(cogo_sch_t*);
 
 */
 #ifndef MOXITREL_COGO_CO_H_
 #define MOXITREL_COGO_CO_H_
 
 #include "yield.h"
-
-#ifdef __cplusplus
-#   define COGO_INLINE inline
-#else
-#   define COGO_INLINE inline static
-#endif
 
 typedef struct cogo_co      cogo_co_t;      // coroutine
 typedef struct cogo_sch     cogo_sch_t;     // scheduler
@@ -64,10 +58,10 @@ struct cogo_sch {
 
 // push coroutine into the concurrent queue
 // return !0 will make scheduler switching to the next coroutine immediately
-COGO_INLINE int cogo_sch_push(cogo_sch_t*, cogo_co_t*);
+inline static int cogo_sch_push(cogo_sch_t*, cogo_co_t*);
 
 // pop the next coroutine to be run
-COGO_INLINE cogo_co_t* cogo_sch_pop(cogo_sch_t*);
+inline static cogo_co_t* cogo_sch_pop(cogo_sch_t*);
 
 //
 // cogo_co_t
@@ -79,7 +73,7 @@ do {                                                                \
     cogo_co_await((cogo_co_t*)(CO_THIS), (cogo_co_t*)(CALLEE));     \
     CO_YIELD;                                                       \
 } while (0)
-COGO_INLINE void cogo_co_await(cogo_co_t* thiz, cogo_co_t* callee)
+inline static void cogo_co_await(cogo_co_t* thiz, cogo_co_t* callee)
 {
     COGO_ASSERT(thiz);
     COGO_ASSERT(thiz->sch);
@@ -100,7 +94,7 @@ do {                                                                    \
         CO_YIELD;                                                       \
     }                                                                   \
 } while (0)
-COGO_INLINE int cogo_co_start(cogo_co_t* thiz, cogo_co_t* co)
+inline static int cogo_co_start(cogo_co_t* thiz, cogo_co_t* co)
 {
     COGO_ASSERT(thiz);
     COGO_ASSERT(thiz->sch);
@@ -113,7 +107,7 @@ COGO_INLINE int cogo_co_start(cogo_co_t* thiz, cogo_co_t* co)
 //
 
 // run the coroutine in stack top until yield or finished, return the next coroutine to be run.
-COGO_INLINE cogo_co_t* cogo_sch_step(cogo_sch_t* sch)
+inline static cogo_co_t* cogo_sch_step(cogo_sch_t* sch)
 {
     COGO_ASSERT(sch);
     while (sch->stack_top) {

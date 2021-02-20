@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 // put a coroutine into queue
-COGO_INLINE int cogo_sch_push(cogo_sch_t* sch, cogo_co_t* co)
+inline static int cogo_sch_push(cogo_sch_t* sch, cogo_co_t* co)
 {
     assert(sch);
     assert(sch->stack_top);
@@ -16,7 +16,7 @@ COGO_INLINE int cogo_sch_push(cogo_sch_t* sch, cogo_co_t* co)
 }
 
 // fetch the next coroutine to be run
-COGO_INLINE cogo_co_t* cogo_sch_pop(cogo_sch_t* sch)
+inline static cogo_co_t* cogo_sch_pop(cogo_sch_t* sch)
 {
     assert(sch);
     return sch->stack_top;
