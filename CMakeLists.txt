@@ -8,6 +8,23 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
         include(FindGTest)
         include(GoogleTest)
 
+        add_compile_options(-Weverything
+                -Wno-old-style-cast
+                -Wno-zero-as-null-pointer-constant
+                -Wno-c++98-compat
+                -Wno-c++98-compat-pedantic
+                -Wno-c99-extensions
+                -Wno-padded
+                -Wno-gnu-label-as-value
+                -Wno-unused-label
+                -Wno-unreachable-code
+                -Wno-global-constructors
+                -Wno-missing-prototypes
+
+                -Wno-gnu-zero-variadic-macro-arguments
+                -Wno-poison-system-directories
+        )
+
         # yield_case
         add_executable(yield_case_test)
         target_sources(yield_case_test

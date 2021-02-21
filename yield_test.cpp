@@ -54,7 +54,7 @@ CO_END:;
 
 TEST(cogo_yield_t, Return)
 {
-    CogoReturn cogoReturn = CO_MAKE(CogoReturn, 0);
+    CogoReturn cogoReturn = CO_MAKE(CogoReturn, .v=0);
     EXPECT_EQ(CO_STATE(&cogoReturn), 0);    // init
     EXPECT_EQ(cogoReturn.v, 0);
 

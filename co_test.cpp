@@ -89,7 +89,7 @@ TEST(cogo_co_t, Step)
     EXPECT_EQ(CO_STATE(&f3_), -1);
 }
 
-unsigned fibonacci(unsigned n)
+static unsigned fibonacci(unsigned n)
 {
     switch (n) {
     case 0:

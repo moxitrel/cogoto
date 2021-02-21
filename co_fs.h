@@ -192,7 +192,7 @@ inline static int cogo_chan_write(co_t* co, co_chan_t* chan, co_msg_t* msg)
 #undef CO_MAKE
 #define CO_MAKE(NAME, ...)                                      \
     ((NAME){                                                    \
-        {{.func = NAME##_func}},                                \
+        .co = {.cogo_co = {.func = NAME##_func}},               \
         __VA_ARGS__                                             \
     })
 

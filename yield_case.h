@@ -76,7 +76,7 @@ typedef struct {
 #define CO_BEGIN                                        \
     switch (COGO_PC) {                                  \
     default:                /* invalid  pc      */      \
-        COGO_ASSERT(!"cogo_pc isn't valid");            \
+        COGO_ASSERT(((void)"cogo_pc isn't valid",0));   \
         goto cogo_exit;                                 \
     case -1:                /* coroutine end    */      \
         goto cogo_exit;                                 \

@@ -2,7 +2,7 @@
 #include "co_fs.h"
 #include "gtest/gtest.h"
 
-CO_DECLARE(Recv, co_chan_t* c, co_msg_t msgNext)
+CO_DECLARE(static Recv, co_chan_t* c, co_msg_t msgNext)
 {
 CO_BEGIN:
 
@@ -11,7 +11,7 @@ CO_BEGIN:
 CO_END:;
 }
 
-CO_DECLARE(Send, co_chan_t* c, co_msg_t msg)
+CO_DECLARE(static Send, co_chan_t* c, co_msg_t msg)
 {
 CO_BEGIN:
 
@@ -20,7 +20,7 @@ CO_BEGIN:
 CO_END:;
 }
 
-CO_DECLARE(Entry, Recv recv1, Send send1)
+CO_DECLARE(static Entry, Recv recv1, Send send1)
 {
 CO_BEGIN:
 

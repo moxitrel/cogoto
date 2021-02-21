@@ -131,7 +131,7 @@ inline static cogo_co_t* cogo_sch_step(cogo_sch_t* sch)
             sch->stack_top = sch->stack_top->caller;
             continue;
         }
-        COGO_ASSERT(!"unexpected case");
+        COGO_ASSERT(((void)"unexpected case",0));
         break;  // discard the coroutine
     }
     return sch->stack_top = cogo_sch_pop(sch);
@@ -147,7 +147,7 @@ inline static cogo_co_t* cogo_sch_step(cogo_sch_t* sch)
 #undef CO_MAKE
 #define CO_MAKE(NAME, ...)                                      \
     ((NAME){                                                    \
-        {.func = NAME##_func},                                  \
+        .cogo_co = {.func = NAME##_func},                       \
         __VA_ARGS__                                             \
     })
 
