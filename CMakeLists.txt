@@ -5,8 +5,8 @@ project(cogo_test)
 if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
     include(CTest)
     if (BUILD_TESTING)
-        include(FindGTest)
         include(GoogleTest)
+        find_package(GTest REQUIRED)
 
         add_compile_options(-Weverything
                 -Wno-old-style-cast
