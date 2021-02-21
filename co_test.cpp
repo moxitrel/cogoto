@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 // put a coroutine into queue
-COGO_INLINE int cogo_sch_push(cogo_sch_t* sch, cogo_co_t* co)
+inline static int cogo_sch_push(cogo_sch_t* sch, cogo_co_t* co)
 {
     assert(sch);
     assert(sch->stack_top);
@@ -16,21 +16,22 @@ COGO_INLINE int cogo_sch_push(cogo_sch_t* sch, cogo_co_t* co)
 }
 
 // fetch the next coroutine to be run
-COGO_INLINE cogo_co_t* cogo_sch_pop(cogo_sch_t* sch)
+inline static cogo_co_t* cogo_sch_pop(cogo_sch_t* sch)
 {
+    assert(sch);
     return sch->stack_top;
 }
 
-static void cogo_co_run(cogo_co_t* main)
+static void cogo_co_run(void* co)
 {
     cogo_sch_t sch = {
-        .stack_top = main,
+        .stack_top = (cogo_co_t*)co,
     };
     while (cogo_sch_step(&sch))
     {}
 }
 
-CO_DECLARE(F3)
+CO_DECLARE(static F3)
 {
 CO_BEGIN:
     CO_YIELD;
@@ -39,18 +40,18 @@ CO_BEGIN:
 CO_END:;
 }
 
-CO_DECLARE(F2, F3 f3)
+CO_DECLARE(static F2, F3 f3)
 {
 CO_BEGIN:
     CO_YIELD;
-    CO_AWAIT(&CO_THIS->f3);
+    CO_AWAIT(&((F2*)CO_THIS)->f3);
 CO_END:;
 }
 
-CO_DECLARE(F1, F2 f2)
+CO_DECLARE(static F1, F2 f2)
 {
 CO_BEGIN:
-    CO_AWAIT(&CO_THIS->f2);
+    CO_AWAIT(&((F1*)CO_THIS)->f2);
 CO_END:;
 }
 
@@ -88,7 +89,7 @@ TEST(cogo_co_t, Step)
     EXPECT_EQ(CO_STATE(&f3_), -1);
 }
 
-unsigned fibonacci(unsigned n)
+static unsigned fibonacci(unsigned n)
 {
     switch (n) {
     case 0:
@@ -100,32 +101,38 @@ unsigned fibonacci(unsigned n)
     }
 }
 
-CO_DECLARE(Fibonacci, unsigned n, unsigned v, Fibonacci* fib_n1, Fibonacci* fib_n2)
+CO_DECLARE(static Fibonacci, unsigned n, unsigned v, Fibonacci* fib_n1, Fibonacci* fib_n2)
 {
+    Fibonacci* thiz = (Fibonacci*)CO_THIS;
+    auto& n = thiz->n;
+    auto& v = thiz->v;
+    auto& fib_n1 = thiz->fib_n1;
+    auto& fib_n2 = thiz->fib_n2;
+
 CO_BEGIN:
 
-    switch (CO_THIS->n) {
+    switch (n) {
     case 0:     // f(0) = 1
-        CO_THIS->v = 1;
-        break;
+        v = 1;
+        CO_RETURN;
     case 1:     // f(1) = 1
-        CO_THIS->v = 1;
-        break;
+        v = 1;
+        CO_RETURN;
     default:    // f(n) = f(n-1) + f(n-2)
-        CO_THIS->fib_n1 = (Fibonacci*)malloc(sizeof(*CO_THIS->fib_n1));
-        CO_THIS->fib_n2 = (Fibonacci*)malloc(sizeof(*CO_THIS->fib_n2));
-        ASSERT_NE(CO_THIS->fib_n1, nullptr);
-        ASSERT_NE(CO_THIS->fib_n2, nullptr);
-        *CO_THIS->fib_n1 = CO_MAKE(Fibonacci, CO_THIS->n - 1);
-        *CO_THIS->fib_n2 = CO_MAKE(Fibonacci, CO_THIS->n - 2);
+        fib_n1 = (Fibonacci*)malloc(sizeof(*fib_n1));
+        fib_n2 = (Fibonacci*)malloc(sizeof(*fib_n2));
+        ASSERT_NE(fib_n1, nullptr);
+        ASSERT_NE(fib_n2, nullptr);
+        *fib_n1 = CO_MAKE(Fibonacci, n - 1);
+        *fib_n2 = CO_MAKE(Fibonacci, n - 2);
 
-        CO_AWAIT(CO_THIS->fib_n1);  // eval f(n-1)
-        CO_AWAIT(CO_THIS->fib_n2);  // eval f(n-2)
+        CO_AWAIT(fib_n1);  // eval f(n-1)
+        CO_AWAIT(fib_n2);  // eval f(n-2)
 
-        CO_THIS->v = CO_THIS->fib_n1->v + CO_THIS->fib_n2->v;
-        free(CO_THIS->fib_n1);
-        free(CO_THIS->fib_n2);
-        break;
+        v = fib_n1->v + fib_n2->v;
+        free(fib_n1);
+        free(fib_n2);
+        CO_RETURN;
     }
 
 CO_END:;
@@ -145,7 +152,7 @@ TEST(cogo_co_t, Run)
     };
 
     for (size_t i = 0; i < sizeof(example) / sizeof(example[0]); i++) {
-        cogo_co_run((cogo_co_t*)&example[i].fib);
+        cogo_co_run(&example[i].fib);
         ASSERT_EQ(example[i].fib.v, example[i].value);
     }
 }

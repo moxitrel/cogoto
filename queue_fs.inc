@@ -29,14 +29,14 @@ typedef struct {
 } COGO_Q_T;
 
 
-COGO_INLINE bool COGO_Q_EMPTY(const COGO_Q_T* thiz)
+inline static bool COGO_Q_EMPTY(const COGO_Q_T* thiz)
 {
     return thiz->head == NULL;
 }
 
 
 /* dequeue, return NULL if empty */
-COGO_INLINE COGO_QUEUE_ITEM_T* COGO_Q_POP(COGO_Q_T* thiz)
+inline static COGO_QUEUE_ITEM_T* COGO_Q_POP(COGO_Q_T* thiz)
 {
     COGO_QUEUE_ITEM_T* node = thiz->head;
     if (!COGO_Q_EMPTY(thiz)) {
@@ -47,7 +47,7 @@ COGO_INLINE COGO_QUEUE_ITEM_T* COGO_Q_POP(COGO_Q_T* thiz)
 
 
 /* enqueue */
-COGO_INLINE void COGO_Q_PUSH(COGO_Q_T* thiz, COGO_QUEUE_ITEM_T* node)
+inline static void COGO_Q_PUSH(COGO_Q_T* thiz, COGO_QUEUE_ITEM_T* node)
 {
     if (COGO_Q_EMPTY(thiz)) {
         thiz->head = node;

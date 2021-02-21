@@ -63,27 +63,28 @@ struct co_sch {
 };
 
 // implement cogo_sch_push()
-COGO_INLINE int cogo_sch_push(cogo_sch_t* sch, cogo_co_t* co)
+inline static int cogo_sch_push(cogo_sch_t* sch, cogo_co_t* co)
 {
     COGO_ASSERT(sch);
-    if (co != NULL) {
-        COGO_QUEUE_PUSH(co_t)(&((co_sch_t*)sch)->q, (co_t*)co);
+    if (co == NULL) {
+        return 0;
     }
+    COGO_QUEUE_PUSH(co_t)(&((co_sch_t*)sch)->q, (co_t*)co);
     return 1;
 }
 
 // implement cogo_sch_pop()
-COGO_INLINE cogo_co_t* cogo_sch_pop(cogo_sch_t* sch)
+inline static cogo_co_t* cogo_sch_pop(cogo_sch_t* sch)
 {
     COGO_ASSERT(sch);
     return (cogo_co_t*)COGO_QUEUE_POP(co_t)(&((co_sch_t*)sch)->q);
 }
 
-COGO_INLINE void co_run(co_t* main)
+inline static void co_run(void* co)
 {
     co_sch_t sch = {
         .cogo_sch = {
-            .stack_top = (cogo_co_t*)main,
+            .stack_top = (cogo_co_t*)co,
         },
     };
     while (cogo_sch_step((cogo_sch_t*)&sch))
@@ -127,7 +128,7 @@ do {                                                                            
         CO_YIELD;                                                                   \
     }                                                                               \
 } while (0)
-COGO_INLINE int cogo_chan_read(co_t* co, co_chan_t* chan, co_msg_t* msg_next)
+inline static int cogo_chan_read(co_t* co, co_chan_t* chan, co_msg_t* msg_next)
 {
     COGO_ASSERT(co);
     COGO_ASSERT(chan);
@@ -141,6 +142,7 @@ COGO_INLINE int cogo_chan_read(co_t* co, co_chan_t* chan, co_msg_t* msg_next)
 
         COGO_QUEUE_PUSH(co_msg_t)(&chan->mq, msg_next);
     } else {
+        // output
         msg_next->next = COGO_QUEUE_POP(co_msg_t)(&chan->mq);
     }
     chan->size--;
@@ -156,7 +158,7 @@ do {                                                                            
         CO_YIELD;                                                                               \
     }                                                                                           \
 } while (0)
-COGO_INLINE int cogo_chan_write(co_t* co, co_chan_t* chan, co_msg_t* msg)
+inline static int cogo_chan_write(co_t* co, co_chan_t* chan, co_msg_t* msg)
 {
     COGO_ASSERT(co);
     COGO_ASSERT(chan);
@@ -190,14 +192,14 @@ COGO_INLINE int cogo_chan_write(co_t* co, co_chan_t* chan, co_msg_t* msg)
 #undef CO_MAKE
 #define CO_MAKE(NAME, ...)                                      \
     ((NAME){                                                    \
-        {{.func = (void(*)(cogo_co_t*))(NAME##_func)}},         \
+        .co = {.cogo_co = {.func = NAME##_func}},               \
         __VA_ARGS__                                             \
     })
 
 
 typedef co_sch_t co_step_t;
 
-COGO_INLINE co_step_t co_step_begin(co_t* co)
+inline static co_step_t co_step_begin(void* co)
 {
     return (co_sch_t){
         .cogo_sch = {
@@ -206,7 +208,7 @@ COGO_INLINE co_step_t co_step_begin(co_t* co)
     };
 }
 
-COGO_INLINE co_t* co_step(co_step_t* thiz)
+inline static co_t* co_step(co_step_t* thiz)
 {
     COGO_ASSERT(thiz);
     return (co_t*)cogo_sch_step((cogo_sch_t*)thiz);
