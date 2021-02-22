@@ -11,7 +11,7 @@
 #define COGO_ARG_PATT_GET(...)  COGO_ARG_PATT_GET1(__VA_ARGS__)
 #define COGO_ARG_PATT_GET1(                                         \
      _1,  _2,  _3,  _4,  _5,  _6,  _7,  _8,  _9, _10,               \
-    _11, _12, _13, _14, _15, _16, _17, _18, _19,   N, ...)  N
+    _11, _12, _13, _14, _15, _16, _17, _18, _19,   N, ...)          N
 #define COGO_REMOVE_PAREN(...)  __VA_ARGS__
 
 // Get nth element of padding. (Solved the COGO_ARG_GET1(...)'s BUG)
