@@ -14,8 +14,6 @@ CO_START    (cogo_co_t*): ...
 
 co_t                                    : coroutine type to be inherited
 co_run          (co_t*)                 : run the coroutine until all finished
-co_step_begin   (co_t*)                 : return co_step_t
-co_step         (co_step_t*)            : run the current coroutine until yield or finished
 
 co_msg_t                                : channel message type
 co_chan_t                               : channel type
@@ -63,7 +61,7 @@ struct co_sch {
 };
 
 // implement cogo_sch_push()
-inline static int cogo_sch_push(cogo_sch_t* sch, cogo_co_t* co)
+inline int cogo_sch_push(cogo_sch_t* sch, cogo_co_t* co)
 {
     COGO_ASSERT(sch);
     if (co == NULL) {
@@ -74,13 +72,13 @@ inline static int cogo_sch_push(cogo_sch_t* sch, cogo_co_t* co)
 }
 
 // implement cogo_sch_pop()
-inline static cogo_co_t* cogo_sch_pop(cogo_sch_t* sch)
+inline cogo_co_t* cogo_sch_pop(cogo_sch_t* sch)
 {
     COGO_ASSERT(sch);
     return (cogo_co_t*)COGO_QUEUE_POP(co_t)(&((co_sch_t*)sch)->q);
 }
 
-inline static void co_run(void* co)
+inline void co_run(void* co)
 {
     co_sch_t sch = {
         .cogo_sch = {
@@ -128,7 +126,7 @@ do {                                                                            
         CO_YIELD;                                                                   \
     }                                                                               \
 } while (0)
-inline static int cogo_chan_read(co_t* co, co_chan_t* chan, co_msg_t* msg_next)
+inline int cogo_chan_read(co_t* co, co_chan_t* chan, co_msg_t* msg_next)
 {
     COGO_ASSERT(co);
     COGO_ASSERT(chan);
@@ -158,7 +156,7 @@ do {                                                                            
         CO_YIELD;                                                                               \
     }                                                                                           \
 } while (0)
-inline static int cogo_chan_write(co_t* co, co_chan_t* chan, co_msg_t* msg)
+inline int cogo_chan_write(co_t* co, co_chan_t* chan, co_msg_t* msg)
 {
     COGO_ASSERT(co);
     COGO_ASSERT(chan);
@@ -195,23 +193,5 @@ inline static int cogo_chan_write(co_t* co, co_chan_t* chan, co_msg_t* msg)
         .co = {.cogo_co = {.func = NAME##_func}},               \
         __VA_ARGS__                                             \
     })
-
-
-typedef co_sch_t co_step_t;
-
-inline static co_step_t co_step_begin(void* co)
-{
-    return (co_sch_t){
-        .cogo_sch = {
-            .stack_top = (cogo_co_t*)co,
-        },
-    };
-}
-
-inline static co_t* co_step(co_step_t* thiz)
-{
-    COGO_ASSERT(thiz);
-    return (co_t*)cogo_sch_step((cogo_sch_t*)thiz);
-}
 
 #endif  // MOXITREL_COGO_CO_IMPL_H_

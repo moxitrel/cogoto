@@ -14,17 +14,17 @@ CO_MAKE   (NAME, ...)   : ...
 CO_AWAIT(cogo_co_t*)    : call another coroutine.
 CO_START(cogo_co_t*)    : run a new coroutine concurrently.
 
-cogo_co_t                               : coroutine type, should be inherited by user.
-cogo_sch_t                              : sheduler  type, should be inherited by user.
-cogo_co_t* cogo_sch_step(cogo_sch_t*)   : run the current coroutine until yield or finished, return the next coroutine to be run.
+cogo_co_t                                   : coroutine type, should be inherited by user.
+cogo_sch_t                                  : sheduler  type, should be inherited by user.
+inline cogo_co_t* cogo_sch_step(cogo_sch_t*): run the current coroutine until yield or finished, return the next coroutine to be run.
 
 * APIs should be implemented by user
 
 // Push a coroutine to the running queue.
-inline static int cogo_sch_push(cogo_sch_t*, cogo_co_t*);
+inline int cogo_sch_push(cogo_sch_t*, cogo_co_t*);
 
 // Pop a coroutine to be run.
-inline static cogo_co_t* cogo_sch_pop(cogo_sch_t*);
+inline cogo_co_t* cogo_sch_pop(cogo_sch_t*);
 
 */
 #ifndef MOXITREL_COGO_CO_H_
@@ -58,56 +58,49 @@ struct cogo_sch {
 
 // push coroutine into the concurrent queue
 // return !0 will make scheduler switching to the next coroutine immediately
-inline static int cogo_sch_push(cogo_sch_t*, cogo_co_t*);
+inline int cogo_sch_push(cogo_sch_t*, cogo_co_t*);
 
 // pop the next coroutine to be run
-inline static cogo_co_t* cogo_sch_pop(cogo_sch_t*);
+inline cogo_co_t* cogo_sch_pop(cogo_sch_t*);
 
 //
 // cogo_co_t
 //
 
 // CO_AWAIT(cogo_co_t*): call another coroutine.
+// CALLEE: should not exist in call train, or loop will occur.
 #define CO_AWAIT(CALLEE)                                            \
 do {                                                                \
     cogo_co_await((cogo_co_t*)(CO_THIS), (cogo_co_t*)(CALLEE));     \
     CO_YIELD;                                                       \
 } while (0)
-inline static void cogo_co_await(cogo_co_t* thiz, cogo_co_t* callee)
+static inline void cogo_co_await(cogo_co_t* thiz, cogo_co_t* callee)
 {
-    COGO_ASSERT(thiz);
-    COGO_ASSERT(thiz->sch);
-//  COGO_ASSERT(thiz->sch->stack_top == thiz);
-    COGO_ASSERT(callee);
-//  COGO_ASSERT(!callee->caller);
-    COGO_ASSERT(thiz != callee);    // NOTE: require no loop exist
+//  COGO_ASSERT(thiz);
+//  COGO_ASSERT(thiz->sch);
+    COGO_ASSERT(thiz->sch->stack_top == thiz);
+//  COGO_ASSERT(callee);
+    COGO_ASSERT(thiz != callee);    // no loop allowed
 
     // call stack push
-    callee->caller = thiz->sch->stack_top;
+    callee->caller = thiz;
     thiz->sch->stack_top = callee;
 }
 
 // CO_START(cogo_co_t*): add a new coroutine to the scheduler.
-#define CO_START(CO)                                                    \
-do {                                                                    \
-    if (cogo_co_start((cogo_co_t*)(CO_THIS), (cogo_co_t*)(CO)) != 0) {  \
-        CO_YIELD;                                                       \
-    }                                                                   \
+#define CO_START(CO)                                                            \
+do {                                                                            \
+    if (cogo_sch_push(((cogo_co_t*)(CO_THIS))->sch, (cogo_co_t*)(CO)) != 0) {   \
+        CO_YIELD;                                                               \
+    }                                                                           \
 } while (0)
-inline static int cogo_co_start(cogo_co_t* thiz, cogo_co_t* co)
-{
-    COGO_ASSERT(thiz);
-    COGO_ASSERT(thiz->sch);
-    COGO_ASSERT(co);
-    return cogo_sch_push(thiz->sch, co);
-}
 
 //
 // cogo_sch_t
 //
 
 // run the coroutine in stack top until yield or finished, return the next coroutine to be run.
-inline static cogo_co_t* cogo_sch_step(cogo_sch_t* sch)
+inline cogo_co_t* cogo_sch_step(cogo_sch_t* sch)
 {
     COGO_ASSERT(sch);
     while (sch->stack_top) {

@@ -4,25 +4,26 @@
 #include <stdlib.h>
 
 // put a coroutine into queue
-inline static int cogo_sch_push(cogo_sch_t* sch, cogo_co_t* co)
+inline int cogo_sch_push(cogo_sch_t* sch, cogo_co_t* co)
 {
     assert(sch);
     assert(sch->stack_top);
     assert(co);
     if (co != sch->stack_top) {
-        cogo_co_await(sch->stack_top, co);
+        co->caller = sch->stack_top;
+        sch->stack_top = co;
     }
     return 1;
 }
 
 // fetch the next coroutine to be run
-inline static cogo_co_t* cogo_sch_pop(cogo_sch_t* sch)
+inline cogo_co_t* cogo_sch_pop(cogo_sch_t* sch)
 {
     assert(sch);
     return sch->stack_top;
 }
 
-static void cogo_co_run(void* co)
+inline void cogo_co_run(void* co)
 {
     cogo_sch_t sch = {
         .stack_top = (cogo_co_t*)co,
@@ -30,6 +31,12 @@ static void cogo_co_run(void* co)
     while (cogo_sch_step(&sch))
     {}
 }
+
+extern inline cogo_co_t* cogo_sch_step(cogo_sch_t* sch);
+extern inline int cogo_sch_push(cogo_sch_t* sch, cogo_co_t* co);
+extern inline cogo_co_t* cogo_sch_pop(cogo_sch_t* sch);
+extern inline void cogo_co_run(void* co);
+
 
 CO_DECLARE(static F3)
 {
