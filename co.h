@@ -78,12 +78,12 @@ static inline void cogo_co_await(cogo_co_t* thiz, cogo_co_t* callee)
 {
 //  COGO_ASSERT(thiz);
 //  COGO_ASSERT(thiz->sch);
-    COGO_ASSERT(thiz->sch->stack_top == thiz);
-//  COGO_ASSERT(callee);
+//  COGO_ASSERT(thiz->sch->stack_top == thiz);
+    COGO_ASSERT(callee);
     COGO_ASSERT(thiz != callee);    // no loop allowed
 
     // call stack push
-    callee->caller = thiz;
+    callee->caller = thiz->sch->stack_top;
     thiz->sch->stack_top = callee;
 }
 
