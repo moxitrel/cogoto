@@ -4,25 +4,26 @@
 #include <stdlib.h>
 
 // put a coroutine into queue
-inline static int cogo_sch_push(cogo_sch_t* sch, cogo_co_t* co)
+inline int cogo_sch_push(cogo_sch_t* sch, cogo_co_t* co)
 {
     assert(sch);
     assert(sch->stack_top);
     assert(co);
     if (co != sch->stack_top) {
-        cogo_co_await(sch->stack_top, co);
+        co->caller = sch->stack_top;
+        sch->stack_top = co;
     }
     return 1;
 }
 
 // fetch the next coroutine to be run
-inline static cogo_co_t* cogo_sch_pop(cogo_sch_t* sch)
+inline cogo_co_t* cogo_sch_pop(cogo_sch_t* sch)
 {
     assert(sch);
     return sch->stack_top;
 }
 
-static void cogo_co_run(void* co)
+inline void cogo_co_run(void* co)
 {
     cogo_sch_t sch = {
         .stack_top = (cogo_co_t*)co,
@@ -30,6 +31,12 @@ static void cogo_co_run(void* co)
     while (cogo_sch_step(&sch))
     {}
 }
+
+extern inline cogo_co_t* cogo_sch_step(cogo_sch_t* sch);
+extern inline int cogo_sch_push(cogo_sch_t* sch, cogo_co_t* co);
+extern inline cogo_co_t* cogo_sch_pop(cogo_sch_t* sch);
+extern inline void cogo_co_run(void* co);
+
 
 CO_DECLARE(static F3)
 {
@@ -103,12 +110,11 @@ static unsigned fibonacci(unsigned n)
 
 CO_DECLARE(static Fibonacci, unsigned n, unsigned v, Fibonacci* fib_n1, Fibonacci* fib_n2)
 {
-    Fibonacci* thiz = (Fibonacci*)CO_THIS;
+    auto* thiz = (Fibonacci*)CO_THIS;
     auto& n = thiz->n;
     auto& v = thiz->v;
     auto& fib_n1 = thiz->fib_n1;
     auto& fib_n2 = thiz->fib_n2;
-
 CO_BEGIN:
 
     switch (n) {
@@ -123,13 +129,13 @@ CO_BEGIN:
         fib_n2 = (Fibonacci*)malloc(sizeof(*fib_n2));
         ASSERT_NE(fib_n1, nullptr);
         ASSERT_NE(fib_n2, nullptr);
+
         *fib_n1 = CO_MAKE(Fibonacci, n - 1);
         *fib_n2 = CO_MAKE(Fibonacci, n - 2);
-
         CO_AWAIT(fib_n1);  // eval f(n-1)
         CO_AWAIT(fib_n2);  // eval f(n-2)
-
         v = fib_n1->v + fib_n2->v;
+
         free(fib_n1);
         free(fib_n2);
         CO_RETURN;
