@@ -120,6 +120,7 @@ typedef struct {
 #define CO_CHAN_MAKE(N)    ((co_chan_t){.cap = (N),})
 
 // CO_CHAN_READ(co_chan_t*, co_msg_t*);
+// MSG_NEXT: the read message sit in MSG_NEXT->next
 #define CO_CHAN_READ(CHAN, MSG_NEXT)                                                \
 do {                                                                                \
     if (cogo_chan_read((co_t*)(CO_THIS), (CHAN), (MSG_NEXT)) != 0) {                \

@@ -14,17 +14,16 @@ CO_MAKE   (NAME, ...)   : ...
 CO_AWAIT(cogo_co_t*)    : call another coroutine.
 CO_START(cogo_co_t*)    : run a new coroutine concurrently.
 
-cogo_co_t                                   : coroutine type, should be inherited by user.
-cogo_sch_t                                  : sheduler  type, should be inherited by user.
-inline cogo_co_t* cogo_sch_step(cogo_sch_t*): run the current coroutine until yield or finished, return the next coroutine to be run.
+cogo_co_t               : coroutine type, should be inherited by user.
+cogo_sch_t              : sheduler  type, should be inherited by user.
+inline cogo_co_t* cogo_sch_step(cogo_sch_t*):
+    Run the current coroutine until yield or finished, return the next coroutine to be run.
 
-* APIs should be implemented by user
+inline int cogo_sch_push(cogo_sch_t*, cogo_co_t*)   : *need to be implemented by user*
+    Push a coroutine to the running queue.
 
-// Push a coroutine to the running queue.
-inline int cogo_sch_push(cogo_sch_t*, cogo_co_t*);
-
-// Pop a coroutine to be run.
-inline cogo_co_t* cogo_sch_pop(cogo_sch_t*);
+inline cogo_co_t* cogo_sch_pop(cogo_sch_t*)         : *need to be implemented by user*
+    Pop a coroutine to be run.
 
 */
 #ifndef MOXITREL_COGO_CO_H_
@@ -68,7 +67,7 @@ inline cogo_co_t* cogo_sch_pop(cogo_sch_t*);
 //
 
 // CO_AWAIT(cogo_co_t*): call another coroutine.
-// CALLEE: should not exist in call train, or loop will occur.
+// CALLEE: require no loop in call train.
 #define CO_AWAIT(CALLEE)                                            \
 do {                                                                \
     cogo_co_await((cogo_co_t*)(CO_THIS), (cogo_co_t*)(CALLEE));     \
@@ -77,13 +76,14 @@ do {                                                                \
 static inline void cogo_co_await(cogo_co_t* thiz, cogo_co_t* callee)
 {
 //  COGO_ASSERT(thiz);
-//  COGO_ASSERT(thiz->sch);
+    COGO_ASSERT(thiz->sch);
 //  COGO_ASSERT(thiz->sch->stack_top == thiz);
     COGO_ASSERT(callee);
-    COGO_ASSERT(thiz != callee);    // no loop allowed
+    COGO_ASSERT(thiz->sch->stack_top != callee);    // no loop allowed
 
     // call stack push
     callee->caller = thiz->sch->stack_top;
+//  callee->sch = thiz->sch->stack_top->sch;
     thiz->sch->stack_top = callee;
 }
 
