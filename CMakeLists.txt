@@ -22,7 +22,7 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
                 -Wno-padded
                 -Wno-poison-system-directories
                 -Wno-global-constructors        # google-test
-                -Wno-missing-prototypes
+                -Wno-missing-prototypes         # unit test
         )
         link_libraries(GTest::GTest GTest::Main)
 
