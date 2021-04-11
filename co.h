@@ -42,7 +42,7 @@ struct cogo_co {
     // the coroutine function
     void (*func)(void*);
 
-    // build call stack, !!!REQUIRE NO LOOP EXISTS!!!
+    // build call stack
     cogo_co_t* caller;
 
     // scheduler, updated by cogo_sch_step()
@@ -67,10 +67,10 @@ inline cogo_co_t* cogo_sch_pop(cogo_sch_t*);
 //
 
 // CO_AWAIT(cogo_co_t*): call another coroutine.
-// CALLEE: require no loop in call train.
-#define CO_AWAIT(CALLEE)                                            \
+// CO: require no loop in call train.
+#define CO_AWAIT(CO)                                                \
 do {                                                                \
-    cogo_co_await((cogo_co_t*)(CO_THIS), (cogo_co_t*)(CALLEE));     \
+    cogo_co_await((cogo_co_t*)(CO_THIS), (cogo_co_t*)(CO));         \
     CO_YIELD;                                                       \
 } while (0)
 static inline void cogo_co_await(cogo_co_t* thiz, cogo_co_t* callee)
@@ -131,11 +131,8 @@ inline cogo_co_t* cogo_sch_step(cogo_sch_t* sch)
 }
 
 #undef CO_DECLARE
-#define CO_DECLARE(NAME, ...)                                   \
-    COGO_IFNIL(__VA_ARGS__)(                                    \
-        COGO_DECLARE(NAME, cogo_co_t cogo_co),                  \
-        COGO_DECLARE(NAME, cogo_co_t cogo_co, __VA_ARGS__)      \
-    )
+#define CO_DECLARE(NAME, ...)           \
+    COGO_DECLARE(NAME, cogo_co_t cogo_co, __VA_ARGS__)
 
 #undef CO_MAKE
 #define CO_MAKE(NAME, ...)                                      \

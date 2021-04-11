@@ -25,49 +25,46 @@ NAME_func               : coroutine function name, made by CO_DECLARE(NAME), e.g
 
 #include "utils.h"
 
-// COGO_DECLARE(NAME, ...): define a coroutine named <NAME>
+// COGO_STRUCT(Type, T1 field1, ...): define a struct named <Type>
 //
 // * Example
-//
-// COGO_DECLARE(Point, cogo_yield_t co_gen, int x, int y, int z):
-//
+// COGO_STRUCT(Point, int x, int y, int z) will be expanded into
 //  typedef struct {
-//      cogo_yield_t co_yield;
 //      int x;
 //      int y;
 //      int z;
-//  } Point;
-//  void Point_func(Point* CO_THIS)
+//  } Point
 //
 #define COGO_COMMA_static               ,
 #define COGO_COMMA_extern               ,
 #define COGO_REMOVE_LINKAGE_static
 #define COGO_REMOVE_LINKAGE_extern
-#define COGO_DECLARE(NAME, ...)         COGO_DECLARE1(COGO_ARG_COUNT(COGO_COMMA_##NAME), NAME, __VA_ARGS__)
-#define COGO_DECLARE1(...)              COGO_DECLARE2(__VA_ARGS__)
-#define COGO_DECLARE2(N, ...)           COGO_DECLARE_##N(__VA_ARGS__)
-#define COGO_DECLARE_1(NAME, ...)       /* NAME: Type */                    \
+#define COGO_STRUCT(NAME, ...)          COGO_STRUCT1(COGO_ARG_COUNT(COGO_COMMA_##NAME), NAME, __VA_ARGS__)
+#define COGO_STRUCT1(...)               COGO_STRUCT2(__VA_ARGS__)
+#define COGO_STRUCT2(N, ...)            COGO_STRUCT_##N(__VA_ARGS__)
+#define COGO_STRUCT_1(NAME, ...)        /* NAME: Type */                    \
     typedef struct NAME NAME;                                               \
     struct NAME {                                                           \
         COGO_MAP(;, COGO_ID, __VA_ARGS__);                                  \
-    };                                                                      \
-    CO_DEFINE(NAME)
-#define COGO_DECLARE_2(NAME, ...)       /* NAME: static Type */             \
+    }
+#define COGO_STRUCT_2(NAME, ...)        /* NAME: static Type */             \
     typedef struct COGO_REMOVE_LINKAGE_##NAME COGO_REMOVE_LINKAGE_##NAME;   \
     struct COGO_REMOVE_LINKAGE_##NAME {                                     \
         COGO_MAP(;, COGO_ID, __VA_ARGS__);                                  \
-    };                                                                      \
-    CO_DEFINE(NAME)
+    }
 
-
-#define CO_DECLARE(NAME, ...)                                               \
+#define COGO_DECLARE(NAME, BASE, ...)                                       \
     COGO_IFNIL(__VA_ARGS__)(                                                \
-        COGO_DECLARE(NAME, cogo_yield_t cogo_yield),                        \
-        COGO_DECLARE(NAME, cogo_yield_t cogo_yield, __VA_ARGS__)            \
-    )
+        COGO_STRUCT(NAME, BASE),                                            \
+        COGO_STRUCT(NAME, BASE, __VA_ARGS__)                                \
+    );                                                                      \
+    CO_DEFINE(NAME)
 
 #define CO_DEFINE(NAME)                 \
     void NAME##_func(void* CO_THIS)
+
+#define CO_DECLARE(NAME, ...)           \
+    COGO_DECLARE(NAME, cogo_yield_t cogo_yield, __VA_ARGS__)
 
 #define CO_MAKE(NAME, ...)              \
     ((NAME){                            \

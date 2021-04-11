@@ -34,7 +34,7 @@ TEST(cogo_yield_t, Yield)
     EXPECT_EQ(CO_STATE(&cogoYield), -1);    // end
     EXPECT_EQ(cogoYield.v, 2);
 
-    // noop when coroutine finished
+    // noop when coroutine end
     CogoYield_func(&cogoYield);
     EXPECT_EQ(CO_STATE(&cogoYield), -1);
     EXPECT_EQ(cogoYield.v, 2);
@@ -60,11 +60,6 @@ TEST(cogo_yield_t, Return)
 
     CogoReturn_func(&cogoReturn);
     EXPECT_EQ(CO_STATE(&cogoReturn), -1);   // end
-    EXPECT_EQ(cogoReturn.v, 1);
-
-    // noop
-    CogoReturn_func(&cogoReturn);
-    EXPECT_EQ(CO_STATE(&cogoReturn), -1);
     EXPECT_EQ(cogoReturn.v, 1);
 }
 
