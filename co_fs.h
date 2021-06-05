@@ -78,7 +78,7 @@ inline cogo_co_t* cogo_sch_pop(cogo_sch_t* sch)
     return (cogo_co_t*)COGO_QUEUE_POP(co_t)(&((co_sch_t*)sch)->q);
 }
 
-inline void co_run(void* co)
+static inline void co_run(void* co)
 {
     co_sch_t sch = {
         .cogo_sch = {

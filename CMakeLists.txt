@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-project(cogo_test)
+project(cogo)
 
 if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
     include(CTest)

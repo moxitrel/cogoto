@@ -23,7 +23,7 @@ inline cogo_co_t* cogo_sch_pop(cogo_sch_t* sch)
     return sch->stack_top;
 }
 
-inline void cogo_co_run(void* co)
+static void cogo_co_run(void* co)
 {
     cogo_sch_t sch = {
         .stack_top = (cogo_co_t*)co,
@@ -31,12 +31,6 @@ inline void cogo_co_run(void* co)
     while (cogo_sch_step(&sch))
     {}
 }
-
-extern inline cogo_co_t* cogo_sch_step(cogo_sch_t* sch);
-extern inline int cogo_sch_push(cogo_sch_t* sch, cogo_co_t* co);
-extern inline cogo_co_t* cogo_sch_pop(cogo_sch_t* sch);
-extern inline void cogo_co_run(void* co);
-
 
 CO_DECLARE(static F3)
 {

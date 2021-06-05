@@ -1,0 +1,12 @@
+build/
+
+#
+# ignore files begin with dot default
+#
+.*
+!.gitignore
+
+#
+# misc
+#
+compile_commands.json

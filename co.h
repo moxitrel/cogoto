@@ -16,6 +16,7 @@ CO_START(cogo_co_t*)    : run a new coroutine concurrently.
 
 cogo_co_t               : coroutine type, should be inherited by user.
 cogo_sch_t              : sheduler  type, should be inherited by user.
+
 inline cogo_co_t* cogo_sch_step(cogo_sch_t*):
     Run the current coroutine until yield or finished, return the next coroutine to be run.
 
