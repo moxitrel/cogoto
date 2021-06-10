@@ -138,7 +138,6 @@ inline int cogo_chan_read(co_t* co, co_chan_t* chan, co_msg_t* msg_next)
         // sleep in background
         COGO_QUEUE_PUSH(co_t)(&chan->rq, co);       // append to blocking queue
         ((cogo_co_t*)co)->sch->stack_top = NULL;    // remove from scheduler
-
         COGO_QUEUE_PUSH(co_msg_t)(&chan->mq, msg_next);
     } else {
         // output

@@ -39,6 +39,7 @@ NAME_func               : coroutine function name, made by CO_DECLARE(NAME), e.g
 #define COGO_COMMA_extern               ,
 #define COGO_REMOVE_LINKAGE_static
 #define COGO_REMOVE_LINKAGE_extern
+#define COGO_ID(X)                      X
 #define COGO_STRUCT(NAME, ...)          COGO_STRUCT1(COGO_ARG_COUNT(COGO_COMMA_##NAME), NAME, __VA_ARGS__)
 #define COGO_STRUCT1(...)               COGO_STRUCT2(__VA_ARGS__)
 #define COGO_STRUCT2(N, ...)            COGO_STRUCT_##N(__VA_ARGS__)

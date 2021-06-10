@@ -49,7 +49,7 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
         target_sources(co_test
                 PRIVATE co_test.cpp)
         target_compile_features(co_test
-                PRIVATE cxx_std_11)
+                PRIVATE cxx_std_14)
 
         # co_fs
         add_executable(co_fs_test)

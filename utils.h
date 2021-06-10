@@ -99,6 +99,4 @@
 #define COGO_IFNIL_F_1(...)
 #define COGO_IFNIL_F_0(FK)              FK
 
-#define COGO_ID(X)                      X
-
 #endif // MOXITREL_COGO_UTILS_H_

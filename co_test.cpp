@@ -58,36 +58,36 @@ CO_END:;
 
 TEST(cogo_co_t, Step)
 {
-    F1 f1_ = CO_MAKE(F1, CO_MAKE(F2, CO_MAKE(F3)));
-    auto& f2_ = f1_.f2;
-    auto& f3_ = f2_.f3;
+    F1 f1 = CO_MAKE(F1, CO_MAKE(F2, CO_MAKE(F3)));
+    auto& f2 = f1.f2;
+    auto& f3 = f2.f3;
 
     cogo_sch_t sch = {
-        .stack_top = (cogo_co_t*)&f1_,
+        .stack_top = (cogo_co_t*)&f1,
     };
-    ASSERT_EQ(CO_STATE(&f1_), 0);
-    ASSERT_EQ(CO_STATE(&f2_), 0);
-    ASSERT_EQ(CO_STATE(&f3_), 0);
+    ASSERT_EQ(CO_STATE(&f1), 0);
+    ASSERT_EQ(CO_STATE(&f2), 0);
+    ASSERT_EQ(CO_STATE(&f3), 0);
 
     // F2 yield
     auto co = cogo_sch_step(&sch);
-    EXPECT_EQ(co, (cogo_co_t*)&f2_);
-    EXPECT_GT(CO_STATE(&f1_), 0);
-    EXPECT_GT(CO_STATE(&f2_), 0);
-    EXPECT_EQ(CO_STATE(&f3_), 0);
+    EXPECT_EQ(co, (cogo_co_t*)&f2);
+    EXPECT_GT(CO_STATE(&f1), 0);
+    EXPECT_GT(CO_STATE(&f2), 0);
+    EXPECT_EQ(CO_STATE(&f3), 0);
 
     // F3 first yield
     co = cogo_sch_step(&sch);
-    EXPECT_EQ(co, (cogo_co_t*)&f3_);
-    EXPECT_GT(CO_STATE(&f1_), 0);
-    EXPECT_GT(CO_STATE(&f2_), 0);
-    EXPECT_GT(CO_STATE(&f3_), 0);
+    EXPECT_EQ(co, (cogo_co_t*)&f3);
+    EXPECT_GT(CO_STATE(&f1), 0);
+    EXPECT_GT(CO_STATE(&f2), 0);
+    EXPECT_GT(CO_STATE(&f3), 0);
 
     // F3 co_return
     co = cogo_sch_step(&sch);
-    EXPECT_EQ(CO_STATE(&f1_), -1);
-    EXPECT_EQ(CO_STATE(&f2_), -1);
-    EXPECT_EQ(CO_STATE(&f3_), -1);
+    EXPECT_EQ(CO_STATE(&f1), -1);
+    EXPECT_EQ(CO_STATE(&f2), -1);
+    EXPECT_EQ(CO_STATE(&f3), -1);
 }
 
 static unsigned fibonacci(unsigned n)
@@ -121,8 +121,8 @@ CO_BEGIN:
     default:    // f(n) = f(n-1) + f(n-2)
         fib_n1 = (Fibonacci*)malloc(sizeof(*fib_n1));
         fib_n2 = (Fibonacci*)malloc(sizeof(*fib_n2));
-        ASSERT_NE(fib_n1, nullptr);
-        ASSERT_NE(fib_n2, nullptr);
+        assert(fib_n1 != nullptr);
+        assert(fib_n2 != nullptr);
 
         *fib_n1 = CO_MAKE(Fibonacci, n - 1);
         *fib_n2 = CO_MAKE(Fibonacci, n - 2);
