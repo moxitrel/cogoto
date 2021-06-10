@@ -50,7 +50,7 @@ struct co {
 #undef  COGO_QUEUE_ITEM_NEXT
 #define COGO_QUEUE_ITEM_T           co_t
 #define COGO_QUEUE_ITEM_NEXT(P)     ((P)->next)
-#include "queue_fs.inc"
+#include "queue_st.inc"
 
 struct co_sch {
     // inherent cogo_sch_t
@@ -104,7 +104,7 @@ struct co_msg {
 #undef  COGO_QUEUE_ITEM_NEXT
 #define COGO_QUEUE_ITEM_T           co_msg_t
 #define COGO_QUEUE_ITEM_NEXT(P)     ((P)->next)
-#include "queue_fs.inc"
+#include "queue_st.inc"
 
 typedef struct {
     // rq, wq: all coroutines blocked by this channel
