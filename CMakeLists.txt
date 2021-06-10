@@ -52,15 +52,15 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
                 PRIVATE cxx_std_14)
 
         # co_fs
-        add_executable(co_fs_test)
-        target_sources(co_fs_test
-                PRIVATE co_fs_test.cpp)
-        target_compile_features(co_fs_test
+        add_executable(co_st_test)
+        target_sources(co_st_test
+                PRIVATE co_st_test.cpp)
+        target_compile_features(co_st_test
                 PRIVATE cxx_std_11)
 
         gtest_discover_tests(yield_case_test)
         gtest_discover_tests(yield_label_value_test)
         gtest_discover_tests(co_test)
-        gtest_discover_tests(co_fs_test)
+        gtest_discover_tests(co_st_test)
     endif ()
 endif ()
