@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
 
-project(cogo)
+project(Cogo)
+add_library(cogo)
+target_sources(cogo PRIVATE co_st.c)
 
 if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
     include(CTest)
@@ -51,7 +53,7 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
         target_compile_features(co_test
                 PRIVATE cxx_std_14)
 
-        # co_fs
+        # co_st
         add_executable(co_st_test)
         target_sources(co_st_test
                 PRIVATE co_st_test.cpp)

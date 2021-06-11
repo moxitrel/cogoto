@@ -1,4 +1,4 @@
-#include "co_fs.h"
+#include "co_st.h"
 
 extern inline cogo_co_t* cogo_sch_step(cogo_sch_t* sch);
 extern inline int cogo_sch_push(cogo_sch_t* sch, cogo_co_t* co);
