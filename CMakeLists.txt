@@ -36,6 +36,7 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
                 PRIVATE cxx_std_11)
         target_compile_definitions(yield_case_test
                 PRIVATE COGO_CASE)
+        gtest_discover_tests(yield_case_test)
 
         # yield_label_value
         add_executable(yield_label_value_test)
@@ -45,6 +46,7 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
                 PRIVATE cxx_std_11)
         target_compile_definitions(yield_case_test
                 PRIVATE COGO_LABEL_VALUE)
+        gtest_discover_tests(yield_label_value_test)
 
         # co
         add_executable(co_test)
@@ -52,6 +54,7 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
                 PRIVATE co_test.cpp)
         target_compile_features(co_test
                 PRIVATE cxx_std_14)
+        gtest_discover_tests(co_test)
 
         # co_st
         add_executable(co_st_test)
@@ -59,10 +62,7 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
                 PRIVATE co_st_test.cpp)
         target_compile_features(co_st_test
                 PRIVATE cxx_std_11)
-
-        gtest_discover_tests(yield_case_test)
-        gtest_discover_tests(yield_label_value_test)
-        gtest_discover_tests(co_test)
         gtest_discover_tests(co_st_test)
+
     endif ()
 endif ()
