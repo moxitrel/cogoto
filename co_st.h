@@ -107,10 +107,8 @@ struct co_msg {
 #include "queue_st.inc"
 
 typedef struct {
-    // rq, wq: all coroutines blocked by this channel
-    COGO_QUEUE_T(co_t) rq;
-    COGO_QUEUE_T(co_t) wq;
-
+    // all coroutines blocked by this channel
+    COGO_QUEUE_T(co_t) cq;
     // message queue
     COGO_QUEUE_T(co_msg_t) mq;
     ptrdiff_t size;
@@ -134,19 +132,18 @@ inline int cogo_chan_read(co_t* co, co_chan_t* chan, co_msg_t* msg_next)
     COGO_ASSERT(chan->size > PTRDIFF_MIN);
     COGO_ASSERT(msg_next);
 
-    if (chan->size <= 0) {
-        // sleep in background
-        COGO_QUEUE_PUSH(co_t)(&chan->rq, co);       // append to blocking queue
-        ((cogo_co_t*)co)->sch->stack_top = NULL;    // remove from scheduler
-        COGO_QUEUE_PUSH(co_msg_t)(&chan->mq, msg_next);
-    } else {
-        // output
+    ptrdiff_t chan_size = chan->size--;
+    if (chan_size > 0) {
         msg_next->next = COGO_QUEUE_POP(co_msg_t)(&chan->mq);
+        // wake up a writer if exists
+        return cogo_sch_push(((cogo_co_t*)co)->sch, (cogo_co_t*)COGO_QUEUE_POP(co_t)(&chan->cq));
+    } else {
+        COGO_QUEUE_PUSH(co_msg_t)(&chan->mq, msg_next);
+        // sleep in background
+        COGO_QUEUE_PUSH(co_t)(&chan->cq, co);       // append to blocking queue
+        ((cogo_co_t*)co)->sch->stack_top = NULL;    // remove from scheduler
+        return 1;
     }
-    chan->size--;
-    // wake up a writer if exists
-    return cogo_sch_push(((cogo_co_t*)co)->sch, (cogo_co_t*)COGO_QUEUE_POP(co_t)(&chan->wq))
-        || ((cogo_co_t*)co)->sch->stack_top == NULL;
 }
 
 // CO_CHAN_WRITE(co_chan_t*, co_msg_t*);
@@ -163,31 +160,31 @@ inline int cogo_chan_write(co_t* co, co_chan_t* chan, co_msg_t* msg)
     COGO_ASSERT(chan->size < PTRDIFF_MAX);
     COGO_ASSERT(msg);
 
-    if (chan->size < 0) {
+    ptrdiff_t chan_size = chan->size++;
+    if (chan_size < 0) {
         COGO_QUEUE_POP(co_msg_t)(&chan->mq)->next = msg;
+        // wake up a reader if exists
+        return cogo_sch_push(((cogo_co_t*)co)->sch, (cogo_co_t*)COGO_QUEUE_POP(co_t)(&chan->cq));
     } else {
+        COGO_QUEUE_PUSH(co_msg_t)(&chan->mq, msg);
         if (chan->size >= chan->cap) {
             // sleep in background
-            COGO_QUEUE_PUSH(co_t)(&chan->wq, co);
+            COGO_QUEUE_PUSH(co_t)(&chan->cq, co);
             ((cogo_co_t*)co)->sch->stack_top = NULL;
         }
-        COGO_QUEUE_PUSH(co_msg_t)(&chan->mq, msg);
+        return ((cogo_co_t*)co)->sch->stack_top == NULL;
     }
-    chan->size++;
-    // wake up a reader if exists
-    return cogo_sch_push(((cogo_co_t*)co)->sch, (cogo_co_t*)COGO_QUEUE_POP(co_t)(&chan->rq))
-        || ((cogo_co_t*)co)->sch->stack_top == NULL;
 }
 
 #undef CO_DECLARE
-#define CO_DECLARE(NAME, ...)           \
+#define CO_DECLARE(NAME, ...)                           \
     COGO_DECLARE(NAME, co_t co, __VA_ARGS__)
 
 #undef CO_MAKE
-#define CO_MAKE(NAME, ...)                                      \
-    ((NAME){                                                    \
-        .co = {.cogo_co = {.func = NAME##_func}},               \
-        __VA_ARGS__                                             \
+#define CO_MAKE(NAME, ...)                              \
+    ((NAME){                                            \
+        .co = {.cogo_co = {.func = NAME##_func}},       \
+        __VA_ARGS__                                     \
     })
 
 #endif  // MOXITREL_COGO_CO_IMPL_H_
