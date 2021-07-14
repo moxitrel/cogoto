@@ -55,7 +55,6 @@ struct co {
 struct co_sch {
     // inherent cogo_sch_t
     cogo_sch_t cogo_sch;
-
     // coroutine queue run concurrently
     COGO_QUEUE_T(co_t) q;
 };
@@ -64,11 +63,9 @@ struct co_sch {
 inline int cogo_sch_push(cogo_sch_t* sch, cogo_co_t* co)
 {
     COGO_ASSERT(sch);
-    if (co == NULL) {
-        return 0;
-    }
+    COGO_ASSERT(co);
     COGO_QUEUE_PUSH(co_t)(&((co_sch_t*)sch)->q, (co_t*)co);
-    return 1;
+    return 1;   // switch context
 }
 
 // implement cogo_sch_pop()
@@ -111,11 +108,13 @@ typedef struct {
     COGO_QUEUE_T(co_t) cq;
     // message queue
     COGO_QUEUE_T(co_msg_t) mq;
-    ptrdiff_t size;
-    ptrdiff_t cap;
+    // current size
+    ptrdiff_t sz;
+    // max size
+    const ptrdiff_t mz;
 } co_chan_t;
 
-#define CO_CHAN_MAKE(N)    ((co_chan_t){.cap = (N),})
+#define CO_CHAN_MAKE(N)    ((co_chan_t){.mz = (N),})
 
 // CO_CHAN_READ(co_chan_t*, co_msg_t*);
 // MSG_NEXT: the read message sit in MSG_NEXT->next
@@ -127,22 +126,26 @@ do {                                                                            
 } while (0)
 inline int cogo_chan_read(co_t* co, co_chan_t* chan, co_msg_t* msg_next)
 {
-    COGO_ASSERT(co);
+  //COGO_ASSERT(co);
     COGO_ASSERT(chan);
-    COGO_ASSERT(chan->size > PTRDIFF_MIN);
+    COGO_ASSERT(chan->sz > PTRDIFF_MIN);
     COGO_ASSERT(msg_next);
 
-    ptrdiff_t chan_size = chan->size--;
+    ptrdiff_t chan_size = chan->sz--;
     if (chan_size > 0) {
         msg_next->next = COGO_QUEUE_POP(co_msg_t)(&chan->mq);
         // wake up a writer if exists
-        return cogo_sch_push(((cogo_co_t*)co)->sch, (cogo_co_t*)COGO_QUEUE_POP(co_t)(&chan->cq));
+        if (chan_size >= chan->mz) {
+            return cogo_sch_push(((cogo_co_t*)co)->sch, (cogo_co_t*)COGO_QUEUE_POP(co_t)(&chan->cq));
+        } else {
+            return 0;
+        }
     } else {
         COGO_QUEUE_PUSH(co_msg_t)(&chan->mq, msg_next);
         // sleep in background
         COGO_QUEUE_PUSH(co_t)(&chan->cq, co);       // append to blocking queue
         ((cogo_co_t*)co)->sch->stack_top = NULL;    // remove from scheduler
-        return 1;
+        return 1;                                   // switch context
     }
 }
 
@@ -155,19 +158,19 @@ do {                                                                            
 } while (0)
 inline int cogo_chan_write(co_t* co, co_chan_t* chan, co_msg_t* msg)
 {
-    COGO_ASSERT(co);
+  //COGO_ASSERT(co);
     COGO_ASSERT(chan);
-    COGO_ASSERT(chan->size < PTRDIFF_MAX);
+    COGO_ASSERT(chan->sz < PTRDIFF_MAX);
     COGO_ASSERT(msg);
 
-    ptrdiff_t chan_size = chan->size++;
+    ptrdiff_t chan_size = chan->sz++;
     if (chan_size < 0) {
         COGO_QUEUE_POP(co_msg_t)(&chan->mq)->next = msg;
-        // wake up a reader if exists
+        // wake up a reader
         return cogo_sch_push(((cogo_co_t*)co)->sch, (cogo_co_t*)COGO_QUEUE_POP(co_t)(&chan->cq));
     } else {
         COGO_QUEUE_PUSH(co_msg_t)(&chan->mq, msg);
-        if (chan_size >= chan->cap) {
+        if (chan_size >= chan->mz) {
             // sleep in background
             COGO_QUEUE_PUSH(co_t)(&chan->cq, co);
             ((cogo_co_t*)co)->sch->stack_top = NULL;

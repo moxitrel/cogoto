@@ -57,7 +57,7 @@ struct cogo_sch {
 };
 
 // push coroutine into the concurrent queue
-// return !0 will make scheduler switching to the next coroutine immediately
+// switch context if return !0
 inline int cogo_sch_push(cogo_sch_t*, cogo_co_t*);
 
 // pop the next coroutine to be run
