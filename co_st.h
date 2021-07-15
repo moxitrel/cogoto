@@ -132,20 +132,19 @@ inline int cogo_chan_read(co_t* co, co_chan_t* chan, co_msg_t* msg_next)
     COGO_ASSERT(msg_next);
 
     ptrdiff_t chan_size = chan->sz--;
-    if (chan_size > 0) {
-        msg_next->next = COGO_QUEUE_POP(co_msg_t)(&chan->mq);
-        // wake up a writer if exists
-        if (chan_size >= chan->mz) {
-            return cogo_sch_push(((cogo_co_t*)co)->sch, (cogo_co_t*)COGO_QUEUE_POP(co_t)(&chan->cq));
-        } else {
-            return 0;
-        }
-    } else {
+    if (chan_size <= 0) {
         COGO_QUEUE_PUSH(co_msg_t)(&chan->mq, msg_next);
         // sleep in background
         COGO_QUEUE_PUSH(co_t)(&chan->cq, co);       // append to blocking queue
         ((cogo_co_t*)co)->sch->stack_top = NULL;    // remove from scheduler
-        return 1;                                   // switch context
+        return 1;
+    } else {
+        msg_next->next = COGO_QUEUE_POP(co_msg_t)(&chan->mq);
+        // wake up a writer if exists
+        if (chan_size >= chan->mz) {
+            return cogo_sch_push(((cogo_co_t*)co)->sch, (cogo_co_t*)COGO_QUEUE_POP(co_t)(&chan->cq));
+        }
+        return 0;
     }
 }
 
