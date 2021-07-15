@@ -142,7 +142,8 @@ inline int cogo_chan_read(co_t* co, co_chan_t* chan, co_msg_t* msg_next)
         msg_next->next = COGO_QUEUE_POP(co_msg_t)(&chan->mq);
         // wake up a writer if exists
         if (chan_size >= chan->mz) {
-            return cogo_sch_push(((cogo_co_t*)co)->sch, (cogo_co_t*)COGO_QUEUE_POP(co_t)(&chan->cq));
+            cogo_co_t* writer = (cogo_co_t*)COGO_QUEUE_POP(co_t)(&chan->cq);
+            return cogo_sch_push(((cogo_co_t*)co)->sch, writer);
         }
         return 0;
     }
@@ -166,7 +167,8 @@ inline int cogo_chan_write(co_t* co, co_chan_t* chan, co_msg_t* msg)
     if (chan_size < 0) {
         COGO_QUEUE_POP(co_msg_t)(&chan->mq)->next = msg;
         // wake up a reader
-        return cogo_sch_push(((cogo_co_t*)co)->sch, (cogo_co_t*)COGO_QUEUE_POP(co_t)(&chan->cq));
+        cogo_co_t* reader = (cogo_co_t*)COGO_QUEUE_POP(co_t)(&chan->cq);
+        return cogo_sch_push(((cogo_co_t*)co)->sch, reader);
     } else {
         COGO_QUEUE_PUSH(co_msg_t)(&chan->mq, msg);
         if (chan_size >= chan->mz) {
