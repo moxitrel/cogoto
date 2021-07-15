@@ -175,8 +175,9 @@ inline int cogo_chan_write(co_t* co, co_chan_t* chan, co_msg_t* msg)
             // sleep in background
             COGO_QUEUE_PUSH(co_t)(&chan->cq, co);
             ((cogo_co_t*)co)->sch->stack_top = NULL;
+            return 1;
         }
-        return ((cogo_co_t*)co)->sch->stack_top == NULL;
+        return 0;
     }
 }
 
