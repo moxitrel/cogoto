@@ -1,7 +1,6 @@
 /*
 COGO_QUEUE_ITEM_T       : the element type of queue
 COGO_QUEUE_ITEM_NEXT()  : return the next element
-
 */
 #include <stdbool.h>
 #include <stddef.h>
