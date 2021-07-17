@@ -132,7 +132,7 @@ inline cogo_co_t* cogo_sch_step(cogo_sch_t* sch)
 }
 
 #undef CO_DECLARE
-#define CO_DECLARE(NAME, ...)           \
+#define CO_DECLARE(NAME, ...)                                   \
     COGO_DECLARE(NAME, cogo_co_t cogo_co, __VA_ARGS__)
 
 #undef CO_MAKE

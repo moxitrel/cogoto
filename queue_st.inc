@@ -38,7 +38,9 @@ static inline bool COGO_Q_EMPTY(const COGO_Q_T* thiz)
 static inline COGO_QUEUE_ITEM_T* COGO_Q_POP(COGO_Q_T* thiz)
 {
     COGO_QUEUE_ITEM_T* node = thiz->head;
-    thiz->head = COGO_QUEUE_ITEM_NEXT(thiz->head);
+    if (!COGO_Q_EMPTY(thiz)) {
+        thiz->head = COGO_QUEUE_ITEM_NEXT(thiz->head);
+    }
     return node;
 }
 
