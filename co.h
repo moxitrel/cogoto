@@ -78,9 +78,8 @@ static inline void cogo_co_await(cogo_co_t* thiz, cogo_co_t* callee)
 {
 //  COGO_ASSERT(thiz);
     COGO_ASSERT(thiz->sch);
-//  COGO_ASSERT(thiz->sch->stack_top == thiz);
+    COGO_ASSERT(thiz->sch->stack_top == thiz);
     COGO_ASSERT(callee);
-    COGO_ASSERT(thiz->sch->stack_top != callee);    // no loop allowed
 
     // call stack push
     callee->caller = thiz->sch->stack_top;
@@ -125,7 +124,7 @@ inline cogo_co_t* cogo_sch_step(cogo_sch_t* sch)
             sch->stack_top = sch->stack_top->caller;
             continue;
         }
-        COGO_ASSERT(((void)"unexpected case",0));
+        COGO_ASSERT(((void)"ImpossibleCase",0));
         break;  // discard the coroutine
     }
     return sch->stack_top = cogo_sch_pop(sch);

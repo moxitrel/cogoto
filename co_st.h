@@ -26,8 +26,43 @@ CO_CHAN_READ (co_chan_t*, co_msg_t*)    : receive a message from channel, the re
 #define MOXITREL_COGO_CO_IMPL_H_
 
 #include "co.h"
+#include <stdbool.h>
 #include <stddef.h>
-#include "queue_st.inc"
+#include <stdint.h>
+
+typedef struct {
+    void* head;
+    void* tail;
+} co_queue_t;
+
+#define CO_QUEUE_NEXT(Q,N)    (*(void**)((intptr_t)(Q) + (N)))
+
+static inline bool co_queue_empty(const co_queue_t* thiz)
+{
+    return thiz->head == NULL;
+}
+
+/* dequeue */
+static inline void* co_queue_pop(co_queue_t* thiz, ptrdiff_t next)
+{
+    void* node = thiz->head;
+    if (!co_queue_empty(thiz)) {
+        thiz->head = CO_QUEUE_NEXT(thiz->head, next);
+    }
+    return node;
+}
+
+/* enqueue */
+static inline void co_queue_push(co_queue_t* thiz, ptrdiff_t next, void* node)
+{
+    if (co_queue_empty(thiz)) {
+        thiz->head = node;
+    } else {
+        CO_QUEUE_NEXT(thiz->tail, next) = node;
+    }
+    thiz->tail = node;
+    CO_QUEUE_NEXT(node, next) = NULL;
+}
 
 typedef struct co       co_t;
 typedef struct co_sch   co_sch_t;
@@ -40,18 +75,6 @@ struct co {
     // build coroutine queue
     co_t* next;
 };
-
-//
-// COGO_QUEUE_T    (co_t)
-// COGO_QUEUE_EMPTY(co_t) (const COGO_QUEUE_T(co_t)*)
-// COGO_QUEUE_POP  (co_t) (      COGO_QUEUE_T(co_t)*)
-// COGO_QUEUE_PUSH (co_t) (      COGO_QUEUE_T(co_t)*, co_t*)
-//
-// #undef  COGO_QUEUE_ITEM_T
-// #undef  COGO_QUEUE_ITEM_NEXT
-// #define COGO_QUEUE_ITEM_T           co_t
-// #define COGO_QUEUE_ITEM_NEXT(P)     ((P)->next)
-// #include "queue_st.inc"
 
 struct co_sch {
     // inherent cogo_sch_t
@@ -92,18 +115,6 @@ struct co_msg {
     co_msg_t* next;
 };
 
-//
-// COGO_QUEUE_T    (co_msg_t)
-// COGO_QUEUE_EMPTY(co_msg_t) (const COGO_QUEUE_T(co_msg_t)*)
-// COGO_QUEUE_POP  (co_msg_t) (      COGO_QUEUE_T(co_msg_t)*)
-// COGO_QUEUE_PUSH (co_msg_t) (      COGO_QUEUE_T(co_msg_t)*, co_msg_t*)
-//
-// #undef  COGO_QUEUE_ITEM_T
-// #undef  COGO_QUEUE_ITEM_NEXT
-// #define COGO_QUEUE_ITEM_T           co_msg_t
-// #define COGO_QUEUE_ITEM_NEXT(P)     ((P)->next)
-// #include "queue_st.inc"
-
 typedef struct {
     // all coroutines blocked by this channel
     co_queue_t cq;
@@ -136,8 +147,8 @@ inline int cogo_chan_read(co_t* co, co_chan_t* chan, co_msg_t* msg_next)
     if (chan_size <= 0) {
         co_queue_push(&chan->mq, offsetof(co_msg_t, next), msg_next);
         // sleep in background
-        co_queue_push(&chan->cq, offsetof(co_t, next), co);   // append to blocking queue
-        ((cogo_co_t*)co)->sch->stack_top = NULL;                    // remove from scheduler
+        co_queue_push(&chan->cq, offsetof(co_t, next), co);     // append to blocking queue
+        ((cogo_co_t*)co)->sch->stack_top = NULL;                // remove from scheduler
         return 1;
     } else {
         msg_next->next = (co_msg_t*)co_queue_pop(&chan->mq, offsetof(co_msg_t, next));
